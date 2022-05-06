@@ -1,10 +1,10 @@
 package book
 
 type Book struct {
-	ID          int       `json:"id"`
+	ID          uint      `json:"id"`
 	Title       string    `json:"title"`
 	ISBN        string    `json:"isbn"`
-	Pages       int       `json:"pages"`
+	Pages       uint      `json:"pages"`
 	Authors     []Author  `json:"authors"`
 	Publisher   Publisher `json:"pub"`
 	Description string    `json:"description"`
@@ -14,8 +14,8 @@ type Book struct {
 	Cover       Cover     `json:"cover"`
 
 	Digital struct {
-		Price    int   `json:"price"`
-		Discount int   `json:"discount"` // Percentage
+		Price    uint  `json:"price"`
+		Discount uint  `json:"discount"` // Percentage
 		PDF      EBook `json:"pdf"`
 		EPUB     EBook `json:"epub"`
 		DJVU     EBook `json:"djvu"`
@@ -25,8 +25,8 @@ type Book struct {
 	} `json:"digital"`
 
 	Physical struct {
-		Price    int `json:"price"`
-		Discount int `json:"discount"`
-		Stock    int `json:"stock"`
+		Price    uint `json:"price"`
+		Discount uint `json:"discount"`
+		Stock    uint `json:"stock"`
 	} `json:"physical"`
 }

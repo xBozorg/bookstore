@@ -1,7 +1,7 @@
 package book
 
 type Language struct {
-	ID   int    `json:"id"`
+	ID   uint   `json:"id"`
 	Code string `json:"code"`
 	Name string `json:"name"`
 }

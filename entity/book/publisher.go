@@ -1,6 +1,6 @@
 package book
 
 type Publisher struct {
-	ID   int    `json:"id"`
+	ID   uint   `json:"id"`
 	Name string `json:"name"`
 }
