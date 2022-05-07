@@ -1,17 +1,18 @@
 package book
 
 type Book struct {
-	ID          uint      `json:"id"`
-	Title       string    `json:"title"`
-	ISBN        string    `json:"isbn"`
-	Pages       uint      `json:"pages"`
-	Authors     []Author  `json:"authors"`
-	Publisher   Publisher `json:"pub"`
-	Description string    `json:"description"`
-	Topics      []Topic   `json:"topics"`
-	Language    Language  `json:"language"`
-	Year        string    `json:"year"`
-	Cover       Cover     `json:"cover"`
+	ID           uint      `json:"id"`
+	Title        string    `json:"title"`
+	ISBN         string    `json:"isbn"`
+	Pages        uint      `json:"pages"`
+	Authors      []Author  `json:"authors"`
+	Publisher    Publisher `json:"pub"`
+	Description  string    `json:"description"`
+	Topics       []Topic   `json:"topics"`
+	Language     Language  `json:"language"`
+	Year         string    `json:"year"`
+	Cover        Cover     `json:"cover"`
+	CreationDate string    `json:"creationDate"`
 
 	Digital struct {
 		Price    uint  `json:"price"`
