@@ -9,4 +9,5 @@ type User struct {
 	LastName     string        `json:"lastName"`
 	PhoneNumbers []PhoneNumber `json:"phoneNumbers"`
 	Addresses    []Address     `json:"addresses"`
+	RegDate      string        `json:"regDate"` //Registration Date
 }
