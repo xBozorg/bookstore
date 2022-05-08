@@ -5,7 +5,7 @@ type CartItem struct {
 	BookId   uint     `json:"bookID"`
 	UserID   string   `json:"userID"`
 	Price    uint     `json:"price"`
-	Date     string   `json:"timestamp"`
+	Date     string   `json:"date"`
 	Quantity uint     `json:"quantity"`
 	Type     struct { // Digital | Physical | Bundle
 		Digital  bool `json:"digital"`

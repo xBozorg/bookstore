@@ -5,7 +5,7 @@ type Order struct {
 	UserID     string `json:"userID"`
 	CartId     uint   `json:"cartId"`
 	Total      uint   `json:"total"`
-	Date       string `json:"timestamp"`
+	Date       string `json:"date"`
 	StatusCode uint   `json:"statusCode"`
 	STN        uint   `json:"stn"` // Shipment Tracking Number
 }
