@@ -3,7 +3,7 @@ package order
 type Order struct {
 	ID         uint   `json:"id"`
 	UserID     string `json:"userID"`
-	CartId     uint   `json:"cartId"`
+	CartID     uint   `json:"cartID"`
 	Total      uint   `json:"total"`
 	Date       string `json:"date"`
 	StatusCode uint   `json:"statusCode"`

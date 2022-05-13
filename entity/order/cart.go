@@ -1,7 +1,7 @@
 package order
 
 type Cart struct {
-	ID     uint       `json:"ID"`
+	ID     uint       `json:"id"`
 	UserID string     `json:"userID"`
 	Total  uint       `json:"total"`
 	Items  []CartItem `json:"items"`

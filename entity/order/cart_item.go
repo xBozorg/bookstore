@@ -2,7 +2,7 @@ package order
 
 type CartItem struct {
 	ID       uint     `json:"id"`
-	BookId   uint     `json:"bookID"`
+	BookID   uint     `json:"bookID"`
 	UserID   string   `json:"userID"`
 	Price    uint     `json:"price"`
 	Date     string   `json:"date"`
