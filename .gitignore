@@ -25,7 +25,6 @@ go.work
 ### GoLand ###
 .idea
 
-
-
-
-
+.VSCodeCounter
+.vscode
+sqls
