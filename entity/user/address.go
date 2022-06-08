@@ -7,6 +7,6 @@ type Address struct {
 	City        string `json:"city"`
 	Street      string `json:"street"`
 	PostalCode  string `json:"postalCode"`
-	No          uint   `json:"no"`
+	No          string `json:"no"`
 	Description string `json:"description"`
 }
