@@ -1,0 +1,41 @@
+[mysql]
+name = ''
+address = 'host:port'
+net = 'tcp'
+user = ''
+pass = ''
+
+[jwt]
+secret = 'HS256 Secret Key'
+refresh_secret =  'HS256 Secret Key'
+
+[echo]
+http_port = ':port'
+https_port = ':port'
+mode = '' # 'http' or 'https'
+
+#  Tags to construct the logger_format.
+#  - time_unix
+#  - time_unix_nano
+#  - time_rfc3339
+#  - time_rfc3339_nano
+#  - time_custom
+#  - id (Request ID)
+#  - remote_ip
+#  - uri
+#  - host
+#  - method
+#  - path
+#  - protocol
+#  - referer
+#  - user_agent
+#  - status
+#  - error
+#  - latency (In nanoseconds)
+#  - latency_human (Human readable)
+#  - bytes_in (Bytes received)
+#  - bytes_out (Bytes sent)
+#  - header:<NAME>
+#  - query:<NAME>
+#  - form:<NAME>
+logger_format = """{"time":"${time_custom}","id":"${id}","remote_ip":"${remote_ip}","host":"${host}","method":"${method}","uri":"${uri}","user_agent":"${user_agent}","status":${status},"error":"${error}","latency_human":"${latency_human}","bytes_in":${bytes_in},"bytes_out":${bytes_out}}\n"""
