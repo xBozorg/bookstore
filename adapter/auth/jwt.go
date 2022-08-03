@@ -2,12 +2,10 @@ package auth
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/XBozorg/bookstore/config"
-	"github.com/XBozorg/bookstore/dto"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -23,45 +21,45 @@ const (
 	refreshTokenCookieName = "refresh-token"
 )
 
-func GenerateTokensAndSetCookies(c echo.Context, resp dto.LoginUserResponse) error {
+func GenerateTokensAndSetCookies(c echo.Context, id, role string) error {
 
-	accessToken, expA, err := generateAccessToken(config.Conf.GetJWTConfig().Secret, resp)
+	accessToken, expA, err := generateAccessToken(config.Conf.GetJWTConfig().Secret, id, role)
 	if err != nil {
 		return err
 	}
 
-	refreshToken, expR, err := generateRefreshToken(config.Conf.GetJWTConfig().RefreshSecret, resp)
+	refreshToken, expR, err := generateRefreshToken(config.Conf.GetJWTConfig().RefreshSecret, id, role)
 	if err != nil {
 		return err
 	}
 
 	setTokenCookie(accessTokenCookieName, accessToken, expA, c)
 	setTokenCookie(refreshTokenCookieName, refreshToken, expR, c)
-	setUserCookie(resp, expA, c)
+	setIDCookie(id, expA, c)
 
 	return nil
 }
 
-func generateAccessToken(secret string, resp dto.LoginUserResponse) (string, time.Time, error) {
+func generateAccessToken(secret, id, role string) (string, time.Time, error) {
 
 	expirationTime := time.Now().Add(1 * time.Hour)
 
-	return generateToken(resp, expirationTime, []byte(secret))
+	return generateToken(id, role, expirationTime, []byte(secret))
 }
 
-func generateRefreshToken(refreshSecret string, resp dto.LoginUserResponse) (string, time.Time, error) {
+func generateRefreshToken(refreshSecret, id, role string) (string, time.Time, error) {
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 
-	return generateToken(resp, expirationTime, []byte(refreshSecret))
+	return generateToken(id, role, expirationTime, []byte(refreshSecret))
 }
 
-func generateToken(resp dto.LoginUserResponse, expirationTime time.Time, secret []byte) (string, time.Time, error) {
+func generateToken(id, role string, expirationTime time.Time, secret []byte) (string, time.Time, error) {
 
 	claims := &Claims{
-		Role: "user",
+		Role: role,
 		StandardClaims: jwt.StandardClaims{
-			Subject:   resp.User.ID,
+			Subject:   id,
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
@@ -88,10 +86,10 @@ func setTokenCookie(name, token string, expiration time.Time, c echo.Context) {
 	c.SetCookie(cookie)
 }
 
-func setUserCookie(resp dto.LoginUserResponse, expiration time.Time, c echo.Context) {
+func setIDCookie(id string, expiration time.Time, c echo.Context) {
 	cookie := new(http.Cookie)
-	cookie.Name = "user"
-	cookie.Value = resp.User.ID
+	cookie.Name = "ID"
+	cookie.Value = id
 	cookie.Expires = expiration
 	cookie.Path = "/"
 	cookie.HttpOnly = true
@@ -128,20 +126,22 @@ func CheckUserID(c echo.Context, conf config.JwtConfig, userID string) (bool, er
 	return false, nil
 }
 
-func JWTErrorChecker(err error, c echo.Context) error {
-	log.Println(err)
+func UserJWTErrorChecker(err error, c echo.Context) error {
 	return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 }
+func AdminJWTErrorChecker(err error, c echo.Context) error {
+	return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+}
 
-func TokenRefresherMiddleware(resp dto.LoginUserResponse) echo.MiddlewareFunc {
+func TokenRefresherMiddleware(id, role string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 
-			if c.Get("user") == nil {
+			if c.Get("ID") == nil {
 				return next(c)
 			}
 
-			u := c.Get("user").(*jwt.Token)
+			u := c.Get("ID").(*jwt.Token)
 			claims := u.Claims.(*Claims)
 
 			if time.Until(time.Unix(claims.ExpiresAt, 0)) < 15*time.Minute {
@@ -160,7 +160,7 @@ func TokenRefresherMiddleware(resp dto.LoginUserResponse) echo.MiddlewareFunc {
 
 					if tkn != nil && tkn.Valid {
 
-						_ = GenerateTokensAndSetCookies(c, resp)
+						_ = GenerateTokensAndSetCookies(c, id, role)
 					}
 				}
 			}
