@@ -7,6 +7,14 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+type MySQLRepo struct {
+	db *sql.DB
+}
+
+func (m *MySQLRepo) SetDB(db *sql.DB) {
+	m.db = db
+}
+
 func Connect(conf *config.MySQLConfig) (MySQLRepo, error) {
 
 	cfg := mysql.Config{

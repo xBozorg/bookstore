@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -11,14 +10,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
-
-type MySQLRepo struct {
-	db *sql.DB
-}
-
-func (m *MySQLRepo) SetDB(db *sql.DB) {
-	m.db = db
-}
 
 func (m MySQLRepo) CreateUser(ctx context.Context, u user.User) (user.User, error) {
 
