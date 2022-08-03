@@ -17,7 +17,7 @@ import (
 
 func UserAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userTokenCookie, err := c.Cookie("user")
+		userTokenCookie, err := c.Cookie("ID")
 		if err != nil {
 			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 		}
@@ -78,7 +78,7 @@ func CreateUser(repo repository.MySQLRepo, validator user.ValidateCreateUser) ec
 
 		loginUserResp := dto.LoginUserResponse(createUserResp)
 
-		err = auth.GenerateTokensAndSetCookies(c, loginUserResp)
+		err = auth.GenerateTokensAndSetCookies(c, loginUserResp.User.ID, "user")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		}
@@ -110,7 +110,7 @@ func LoginUser(repo repository.MySQLRepo, validator user.ValidateLoginUser) echo
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		err = auth.GenerateTokensAndSetCookies(c, resp)
+		err = auth.GenerateTokensAndSetCookies(c, resp.User.ID, "user")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		}
@@ -119,7 +119,7 @@ func LoginUser(repo repository.MySQLRepo, validator user.ValidateLoginUser) echo
 	}
 }
 
-func LoginForm() echo.HandlerFunc { // simple handler for redirect unauthenticated users
+func UserLoginForm() echo.HandlerFunc { // simple handler for redirect unauthenticated users
 	return func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "login page")
 	}
@@ -129,7 +129,7 @@ func GetUser(repo repository.MySQLRepo, validator user.ValidateGetUser) echo.Han
 	return func(c echo.Context) error {
 
 		req := dto.GetUserRequest{}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -165,7 +165,7 @@ func DeleteUser(repo repository.MySQLRepo, validator user.ValidateDeleteUser) ec
 	return func(c echo.Context) error {
 
 		req := dto.DeleteUserRequest{}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -190,7 +190,7 @@ func ChangePassword(repo repository.MySQLRepo, validator user.ValidateChangePass
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -216,7 +216,7 @@ func ChangeUsername(repo repository.MySQLRepo, validator user.ValidateChangeUser
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -241,7 +241,7 @@ func AddPhone(repo repository.MySQLRepo, validator user.ValidateAddPhone) echo.H
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -266,7 +266,7 @@ func GetPhone(repo repository.MySQLRepo, validator user.ValidateGetPhone) echo.H
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 		req.PhoneID = uint(pid)
 
@@ -288,7 +288,7 @@ func GetPhone(repo repository.MySQLRepo, validator user.ValidateGetPhone) echo.H
 func GetPhones(repo repository.MySQLRepo, validator user.ValidateGetPhones) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhonesRequest{}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -310,7 +310,7 @@ func DeletePhone(repo repository.MySQLRepo, validator user.ValidateDeletePhone) 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 		req.PhoneID = uint(pid)
 
@@ -338,7 +338,7 @@ func AddAddress(repo repository.MySQLRepo, validator user.ValidateAddAddress) ec
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -364,7 +364,7 @@ func GetAddress(repo repository.MySQLRepo, validator user.ValidateGetAddress) ec
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 		req.AddressID = uint(aid)
 
@@ -385,7 +385,7 @@ func GetAddress(repo repository.MySQLRepo, validator user.ValidateGetAddress) ec
 func GetAddresses(repo repository.MySQLRepo, validator user.ValidateGetAddresses) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAddressesRequest{}
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -407,7 +407,7 @@ func DeleteAddress(repo repository.MySQLRepo, validator user.ValidateDeleteAddre
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("user")
+		userCookie, _ := c.Cookie("ID")
 		req.UserID = userCookie.Value
 		req.AddressID = uint(aid)
 
