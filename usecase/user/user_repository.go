@@ -27,8 +27,6 @@ type Repository interface {
 	GetAddress(ctx context.Context, userID string, addressID uint) (user.Address, error)
 	GetAddresses(ctx context.Context, userID string) ([]user.Address, error)
 	DeleteAddress(ctx context.Context, userID string, addressID uint) error
-
-	DoesUserExist(ctx context.Context, userID string) (bool, error)
 }
 
 type ValidatorRepo interface {
