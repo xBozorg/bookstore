@@ -109,7 +109,7 @@ func (m MySQLRepo) ChangePassword(ctx context.Context, userID, oldPass, newPass 
 		return nil
 	}
 
-	return errors.New("password doesn't match")
+	return errors.New("password does not match")
 }
 
 func (m MySQLRepo) ChangeUsername(ctx context.Context, userID, username string) error {

@@ -101,7 +101,7 @@ func LoginAdmin(repo repository.MySQLRepo, validator admin.ValidateLoginAdmin) e
 		resp, err := admin.New(repo).LoginAdmin(c.Request().Context(), req)
 		if err != nil {
 			if strings.Contains(err.Error(), "no rows") {
-				return echo.NewHTTPError(http.StatusNotFound, "user not found")
+				return echo.NewHTTPError(http.StatusNotFound)
 			}
 			if err.Error() == "password does not match" {
 				return echo.NewHTTPError(http.StatusUnauthorized, err.Error())

@@ -11,6 +11,7 @@ import (
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/user"
+	"github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -65,13 +66,15 @@ func CreateUser(repo repository.MySQLRepo, validator user.ValidateCreateUser) ec
 		createUserResp, err := user.New(repo).CreateUser(c.Request().Context(), createUserReq)
 
 		if err != nil {
-			if strings.Contains(err.Error(), "1062") {
-				if strings.Contains(err.Error(), "user_email") {
+			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
+
+				if strings.Contains(driverErr.Message, "user.email") {
 					return echo.NewHTTPError(http.StatusConflict, "email already exists")
 				}
-				if strings.Contains(err.Error(), "user_name") {
+				if strings.Contains(driverErr.Message, "user.username") {
 					return echo.NewHTTPError(http.StatusConflict, "username already exists")
 				}
+
 			}
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -199,7 +202,7 @@ func ChangePassword(repo repository.MySQLRepo, validator user.ValidateChangePass
 
 		_, err := user.New(repo).ChangePassword(c.Request().Context(), req)
 		if err != nil {
-			if err.Error() == "password doesn't match" {
+			if err.Error() == "password does not match" {
 				return echo.NewHTTPError(http.StatusForbidden, err.Error())
 			} else {
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -225,7 +228,7 @@ func ChangeUsername(repo repository.MySQLRepo, validator user.ValidateChangeUser
 
 		resp, err := user.New(repo).ChangeUsername(c.Request().Context(), req)
 		if err != nil {
-			if strings.Contains(err.Error(), "1062") {
+			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
 				return echo.NewHTTPError(http.StatusConflict, "username already exists")
 			}
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -250,6 +253,9 @@ func AddPhone(repo repository.MySQLRepo, validator user.ValidateAddPhone) echo.H
 
 		resp, err := user.New(repo).AddPhone(c.Request().Context(), req)
 		if err != nil {
+			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
+				return echo.NewHTTPError(http.StatusConflict, "Phonenumber already exists")
+			}
 			if strings.Contains(err.Error(), "max") {
 				return echo.NewHTTPError(http.StatusForbidden, err.Error())
 			}
@@ -272,7 +278,7 @@ func GetPhone(repo repository.MySQLRepo, validator user.ValidateGetPhone) echo.H
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			if strings.Contains(err.Error(), "does not exist") {
-				return echo.NewHTTPError(http.StatusNotFound, "phone does not exist")
+				return echo.NewHTTPError(http.StatusNotFound, "phonenumber does not exist")
 			}
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
