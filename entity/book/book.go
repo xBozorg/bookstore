@@ -15,14 +15,14 @@ type Book struct {
 	CreationDate string    `json:"creationDate"`
 
 	Digital struct {
-		Price    uint  `json:"price"`
-		Discount uint  `json:"discount"` // Percentage
-		PDF      EBook `json:"pdf"`
-		EPUB     EBook `json:"epub"`
-		DJVU     EBook `json:"djvu"`
-		AZW      EBook `json:"azw"`
-		TXT      EBook `json:"txt"`
-		DOCX     EBook `json:"docx"`
+		Price    uint   `json:"price"`
+		Discount uint   `json:"discount"` // Percentage
+		PDF      string `json:"pdf"`
+		EPUB     string `json:"epub"`
+		DJVU     string `json:"djvu"`
+		AZW      string `json:"azw"`
+		TXT      string `json:"txt"`
+		DOCX     string `json:"docx"`
 	} `json:"digital"`
 
 	Physical struct {
