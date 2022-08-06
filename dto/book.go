@@ -57,15 +57,6 @@ type GetBookLanguagesResponse struct{}
 type DeleteLanguageRequest struct{}
 type DeleteLanguageResponse struct{}
 
-type AddCoverRequest struct{}
-type AddCoverResponse struct{}
-
-type GetCoverRequest struct{}
-type GetCoverResponse struct{}
-
-type DeleteCoverRequest struct{}
-type DeleteCoverResponse struct{}
-
 type AddBookRequest struct{}
 type AddBookResponse struct{}
 

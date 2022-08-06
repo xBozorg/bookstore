@@ -11,23 +11,26 @@ type Book struct {
 	Topics       []Topic   `json:"topics"`
 	Language     Language  `json:"language"`
 	Year         string    `json:"year"`
-	Cover        Cover     `json:"cover"`
+	CoverFront   string    `json:"coverFront"`
+	CoverBack    string    `json:"coverBack"`
 	CreationDate string    `json:"creationDate"`
+	Digital      Digital   `json:"digital"`
+	Physical     Physical  `json:"physical"`
+}
 
-	Digital struct {
-		Price    uint   `json:"price"`
-		Discount uint   `json:"discount"` // Percentage
-		PDF      string `json:"pdf"`
-		EPUB     string `json:"epub"`
-		DJVU     string `json:"djvu"`
-		AZW      string `json:"azw"`
-		TXT      string `json:"txt"`
-		DOCX     string `json:"docx"`
-	} `json:"digital"`
+type Digital struct {
+	Price    uint   `json:"price"`
+	Discount uint   `json:"discount"` // Percentage
+	PDF      string `json:"pdf"`
+	EPUB     string `json:"epub"`
+	DJVU     string `json:"djvu"`
+	AZW      string `json:"azw"`
+	TXT      string `json:"txt"`
+	DOCX     string `json:"docx"`
+}
 
-	Physical struct {
-		Price    uint `json:"price"`
-		Discount uint `json:"discount"`
-		Stock    uint `json:"stock"`
-	} `json:"physical"`
+type Physical struct {
+	Price    uint `json:"price"`
+	Discount uint `json:"discount"`
+	Stock    uint `json:"stock"`
 }
