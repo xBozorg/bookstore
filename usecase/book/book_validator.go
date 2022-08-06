@@ -30,10 +30,6 @@ type (
 	ValidateGetBookLanguages func(ctx context.Context, req dto.GetBookLanguagesRequest) error
 	ValidateDeleteLanguage   func(ctx context.Context, req dto.DeleteLanguageRequest) error
 
-	ValidateAddCover    func(ctx context.Context, req dto.AddCoverRequest) error
-	ValidateGetCover    func(ctx context.Context, req dto.GetCoverRequest) error
-	ValidateDeleteCover func(ctx context.Context, req dto.DeleteCoverRequest) error
-
 	ValidateAddBook           func(ctx context.Context, req dto.AddBookRequest) error
 	ValidateGetBook           func(ctx context.Context, req dto.GetBookRequest) error
 	ValidateEditBook          func(ctx context.Context, req dto.EditBookRequest) error

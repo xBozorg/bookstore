@@ -30,10 +30,6 @@ type UseCase interface {
 	GetBookLanguages(ctx context.Context, req dto.GetBookLanguagesRequest) (dto.GetBookLanguagesResponse, error)
 	DeleteLanguage(ctx context.Context, req dto.DeleteLanguageRequest) (dto.DeleteLanguageResponse, error)
 
-	AddCover(ctx context.Context, req dto.AddCoverRequest) (dto.AddCoverResponse, error)
-	GetCover(ctx context.Context, req dto.GetCoverRequest) (dto.GetCoverResponse, error)
-	DeleteCover(ctx context.Context, req dto.DeleteCoverRequest) (dto.DeleteCoverResponse, error)
-
 	AddBook(ctx context.Context, req dto.AddBookRequest) (dto.AddBookResponse, error)
 	GetBook(ctx context.Context, req dto.GetBookRequest) (dto.GetBookResponse, error)
 	EditBook(ctx context.Context, req dto.EditBookRequest) (dto.EditBookResponse, error)
