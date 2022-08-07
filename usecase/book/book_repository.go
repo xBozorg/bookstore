@@ -32,11 +32,13 @@ type Repository interface {
 	AddBook(ctx context.Context, b book.Book) (book.Book, error)
 	AddBookAuthor(ctx context.Context, bookID, authorID uint) error
 	AddBookTopic(ctx context.Context, bookID, topicID uint) error
+	SetBookDiscount(ctx context.Context, bookID, digital, physical uint) error
 	GetBook(ctx context.Context, bookID uint) (book.Book, error)
 	GetBookAuthors(ctx context.Context, bookID uint) ([]book.Author, error)
 	GetBookTopics(ctx context.Context, bookID uint) ([]book.Topic, error)
 	EditBook(ctx context.Context, b book.Book) (book.Book, error)
 	GetAllBooks(ctx context.Context) ([]book.Book, error)
+	GetAllBooksFull(ctx context.Context) ([]book.Book, error)
 	GetAuthorBooks(ctx context.Context, authorID uint) ([]book.Book, error)
 	GetPublisherBooks(ctx context.Context, publisherID uint) ([]book.Book, error)
 	GetTopicBooks(ctx context.Context, topicID uint) ([]book.Book, error)

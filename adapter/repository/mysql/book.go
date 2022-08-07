@@ -336,6 +336,7 @@ func (m MySQLRepo) SetBookDiscount(ctx context.Context, bookID, digital, physica
 
 	return nil
 }
+
 func (m MySQLRepo) GetBook(ctx context.Context, bookID uint) (book.Book, error) {
 
 	bookResult := m.db.QueryRowContext(ctx, `SELECT title , isbn , pages , description , year , date ,
