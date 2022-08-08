@@ -6,6 +6,71 @@ import (
 	"github.com/XBozorg/bookstore/entity/book"
 )
 
+func (m MySQLRepo) DoesAuthorExist(ctx context.Context, authorID uint) (bool, error) {
+
+	result := m.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM author WHERE id = ?)", authorID)
+
+	var doesExist bool
+	err := result.Scan(&doesExist)
+	if err != nil {
+		return false, err
+	}
+
+	return doesExist, nil
+}
+
+func (m MySQLRepo) DoesPublisherExist(ctx context.Context, publisherID uint) (bool, error) {
+
+	result := m.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM publisher WHERE id = ?)", publisherID)
+
+	var doesExist bool
+	err := result.Scan(&doesExist)
+	if err != nil {
+		return false, err
+	}
+
+	return doesExist, nil
+}
+
+func (m MySQLRepo) DoesTopicExist(ctx context.Context, topicID uint) (bool, error) {
+
+	result := m.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM topic WHERE id = ?)", topicID)
+
+	var doesExist bool
+	err := result.Scan(&doesExist)
+	if err != nil {
+		return false, err
+	}
+
+	return doesExist, nil
+}
+
+func (m MySQLRepo) DoesLanguageExist(ctx context.Context, langID uint) (bool, error) {
+
+	result := m.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM language WHERE id = ?)", langID)
+
+	var doesExist bool
+	err := result.Scan(&doesExist)
+	if err != nil {
+		return false, err
+	}
+
+	return doesExist, nil
+}
+
+func (m MySQLRepo) DoesBookExist(ctx context.Context, bookID uint) (bool, error) {
+
+	result := m.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM book WHERE id = ?)", bookID)
+
+	var doesExist bool
+	err := result.Scan(&doesExist)
+	if err != nil {
+		return false, err
+	}
+
+	return doesExist, nil
+}
+
 func (m MySQLRepo) AddAuthor(ctx context.Context, authorName string) (book.Author, error) {
 
 	result, err := m.db.ExecContext(ctx, "INSERT INTO author (name) VALUES (?)", authorName)
@@ -72,7 +137,7 @@ func (m MySQLRepo) DeleteAuthor(ctx context.Context, authorID uint) error {
 
 func (m MySQLRepo) AddPublisher(ctx context.Context, publisherName string) (book.Publisher, error) {
 
-	result, err := m.db.ExecContext(ctx, "INSERT IGNORE INTO publisher (name) VALUES (?)", publisherName)
+	result, err := m.db.ExecContext(ctx, "INSERT INTO publisher (name) VALUES (?)", publisherName)
 
 	if err != nil {
 		return book.Publisher{}, err
@@ -101,7 +166,7 @@ func (m MySQLRepo) GetPublisher(ctx context.Context, publisherID uint) (book.Pub
 	return publisher, nil
 }
 
-func (m MySQLRepo) GetAllPublishers(ctx context.Context) ([]book.Publisher, error) {
+func (m MySQLRepo) GetPublishers(ctx context.Context) ([]book.Publisher, error) {
 
 	result, err := m.db.QueryContext(ctx, "SELECT id , name FROM publisher")
 
@@ -136,7 +201,7 @@ func (m MySQLRepo) DeletePublisher(ctx context.Context, publisherId uint) error 
 
 func (m MySQLRepo) AddTopic(ctx context.Context, topicName string) (book.Topic, error) {
 
-	result, err := m.db.ExecContext(ctx, "INSERT IGNORE INTO topic (name) VALUES (?)", topicName)
+	result, err := m.db.ExecContext(ctx, "INSERT INTO topic (name) VALUES (?)", topicName)
 
 	if err != nil {
 		return book.Topic{}, err
@@ -165,7 +230,7 @@ func (m MySQLRepo) GetTopic(ctx context.Context, topicID uint) (book.Topic, erro
 	return topic, nil
 }
 
-func (m MySQLRepo) GetAllTopics(ctx context.Context) ([]book.Topic, error) {
+func (m MySQLRepo) GetTopics(ctx context.Context) ([]book.Topic, error) {
 
 	result, err := m.db.QueryContext(ctx, "SELECT id , name FROM topic")
 
@@ -200,7 +265,7 @@ func (m MySQLRepo) DeleteTopic(ctx context.Context, topicID uint) error {
 
 func (m MySQLRepo) AddLanguage(ctx context.Context, langCode string) (book.Language, error) {
 
-	result, err := m.db.ExecContext(ctx, "INSERT IGNORE INTO language (code) VALUES (?)", langCode)
+	result, err := m.db.ExecContext(ctx, "INSERT INTO language (code) VALUES (?)", langCode)
 
 	if err != nil {
 		return book.Language{}, err
@@ -229,7 +294,7 @@ func (m MySQLRepo) GetLanguage(ctx context.Context, langID uint) (book.Language,
 	return lang, nil
 }
 
-func (m MySQLRepo) GetAllLanguages(ctx context.Context) ([]book.Language, error) {
+func (m MySQLRepo) GetLanguages(ctx context.Context) ([]book.Language, error) {
 
 	result, err := m.db.QueryContext(ctx, "SELECT id , code FROM language")
 
@@ -265,7 +330,7 @@ func (m MySQLRepo) DeleteLanguage(ctx context.Context, langID uint) error {
 
 func (m MySQLRepo) AddBook(ctx context.Context, b book.Book) (book.Book, error) {
 
-	result, err := m.db.ExecContext(ctx, `INSERT IGNORE INTO book 
+	result, err := m.db.ExecContext(ctx, `INSERT INTO book 
 
 	(title , isbn , pages , description , year , date , digital_price , 
 	physical_price , physical_stock , pdf , epub , djvu , azw , txt , docx , lang_id , cover_front , cover_back , publisher)
