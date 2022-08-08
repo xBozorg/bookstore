@@ -14,17 +14,17 @@ type UseCase interface {
 
 	AddPublisher(ctx context.Context, req dto.AddPublisherRequest) (dto.AddPublisherResponse, error)
 	GetPublisher(ctx context.Context, req dto.GetPublisherRequest) (dto.GetPublisherResponse, error)
-	GetAllPublishers(ctx context.Context, req dto.GetAllPublishersRequest) (dto.GetAllPublishersResponse, error)
+	GetPublishers(ctx context.Context, req dto.GetPublishersRequest) (dto.GetPublishersResponse, error)
 	DeletePublisher(ctx context.Context, req dto.DeletePublisherRequest) (dto.DeletePublisherResponse, error)
 
 	AddTopic(ctx context.Context, req dto.AddTopicRequest) (dto.AddTopicResponse, error)
 	GetTopic(ctx context.Context, req dto.GetTopicRequest) (dto.GetTopicResponse, error)
-	GetAllTopics(ctx context.Context, req dto.GetAllTopicsRequest) (dto.GetAllTopicsResponse, error)
+	GetTopics(ctx context.Context, req dto.GetTopicsRequest) (dto.GetTopicsResponse, error)
 	DeleteTopic(ctx context.Context, req dto.DeleteTopicRequest) (dto.DeleteTopicResponse, error)
 
 	AddLanguage(ctx context.Context, req dto.AddLanguageRequest) (dto.AddLanguageResponse, error)
 	GetLanguage(ctx context.Context, req dto.GetLanguageRequest) (dto.GetLanguageResponse, error)
-	GetAllLanguages(ctx context.Context, req dto.GetAllLanguagesRequest) (dto.GetAllLanguagesResponse, error)
+	GetLanguages(ctx context.Context, req dto.GetLanguagesRequest) (dto.GetLanguagesResponse, error)
 	DeleteLanguage(ctx context.Context, req dto.DeleteLanguageRequest) (dto.DeleteLanguageResponse, error)
 
 	AddBook(ctx context.Context, req dto.AddBookRequest) (dto.AddBookResponse, error)
@@ -107,14 +107,14 @@ func (u UseCaseRepo) GetPublisher(ctx context.Context, req dto.GetPublisherReque
 	return dto.GetPublisherResponse{Publisher: publisher}, nil
 }
 
-func (u UseCaseRepo) GetAllPublishers(ctx context.Context, req dto.GetAllPublishersRequest) (dto.GetAllPublishersResponse, error) {
+func (u UseCaseRepo) GetPublishers(ctx context.Context, req dto.GetPublishersRequest) (dto.GetPublishersResponse, error) {
 
-	publishers, err := u.repo.GetAllPublishers(ctx)
+	publishers, err := u.repo.GetPublishers(ctx)
 	if err != nil {
-		return dto.GetAllPublishersResponse{}, err
+		return dto.GetPublishersResponse{}, err
 	}
 
-	return dto.GetAllPublishersResponse{Publishers: publishers}, nil
+	return dto.GetPublishersResponse{Publishers: publishers}, nil
 }
 
 func (u UseCaseRepo) DeletePublisher(ctx context.Context, req dto.DeletePublisherRequest) (dto.DeletePublisherResponse, error) {
@@ -147,14 +147,14 @@ func (u UseCaseRepo) GetTopic(ctx context.Context, req dto.GetTopicRequest) (dto
 	return dto.GetTopicResponse{Topic: topic}, nil
 }
 
-func (u UseCaseRepo) GetAllTopics(ctx context.Context, req dto.GetAllTopicsRequest) (dto.GetAllTopicsResponse, error) {
+func (u UseCaseRepo) GetTopics(ctx context.Context, req dto.GetTopicsRequest) (dto.GetTopicsResponse, error) {
 
-	topics, err := u.repo.GetAllTopics(ctx)
+	topics, err := u.repo.GetTopics(ctx)
 	if err != nil {
-		return dto.GetAllTopicsResponse{}, err
+		return dto.GetTopicsResponse{}, err
 	}
 
-	return dto.GetAllTopicsResponse{Topics: topics}, nil
+	return dto.GetTopicsResponse{Topics: topics}, nil
 }
 
 func (u UseCaseRepo) DeleteTopic(ctx context.Context, req dto.DeleteTopicRequest) (dto.DeleteTopicResponse, error) {
@@ -187,14 +187,14 @@ func (u UseCaseRepo) GetLanguage(ctx context.Context, req dto.GetLanguageRequest
 	return dto.GetLanguageResponse{Language: lang}, nil
 }
 
-func (u UseCaseRepo) GetAllLanguages(ctx context.Context, req dto.GetAllLanguagesRequest) (dto.GetAllLanguagesResponse, error) {
+func (u UseCaseRepo) GetLanguages(ctx context.Context, req dto.GetLanguagesRequest) (dto.GetLanguagesResponse, error) {
 
-	langs, err := u.repo.GetAllLanguages(ctx)
+	langs, err := u.repo.GetLanguages(ctx)
 	if err != nil {
-		return dto.GetAllLanguagesResponse{}, err
+		return dto.GetLanguagesResponse{}, err
 	}
 
-	return dto.GetAllLanguagesResponse{Languages: langs}, nil
+	return dto.GetLanguagesResponse{Languages: langs}, nil
 }
 
 func (u UseCaseRepo) DeleteLanguage(ctx context.Context, req dto.DeleteLanguageRequest) (dto.DeleteLanguageResponse, error) {

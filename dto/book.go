@@ -40,8 +40,8 @@ type GetPublisherResponse struct {
 	Publisher book.Publisher `json:"publisher"`
 }
 
-type GetAllPublishersRequest struct{}
-type GetAllPublishersResponse struct {
+type GetPublishersRequest struct{}
+type GetPublishersResponse struct {
 	Publishers []book.Publisher `json:"publishers"`
 }
 
@@ -64,8 +64,8 @@ type GetTopicResponse struct {
 	Topic book.Topic `json:"topic"`
 }
 
-type GetAllTopicsRequest struct{}
-type GetAllTopicsResponse struct {
+type GetTopicsRequest struct{}
+type GetTopicsResponse struct {
 	Topics []book.Topic `json:"topics"`
 }
 
@@ -88,8 +88,8 @@ type GetLanguageResponse struct {
 	Language book.Language `json:"language"`
 }
 
-type GetAllLanguagesRequest struct{}
-type GetAllLanguagesResponse struct {
+type GetLanguagesRequest struct{}
+type GetLanguagesResponse struct {
 	Languages []book.Language `json:"languages"`
 }
 

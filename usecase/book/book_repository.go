@@ -14,19 +14,17 @@ type Repository interface {
 
 	AddPublisher(ctx context.Context, publisherName string) (book.Publisher, error)
 	GetPublisher(ctx context.Context, publisherID uint) (book.Publisher, error)
-	GetBookPublishers(ctx context.Context, bookID uint) ([]book.Publisher, error)
-	GetAllPublishers(ctx context.Context) ([]book.Publisher, error)
+	GetPublishers(ctx context.Context) ([]book.Publisher, error)
 	DeletePublisher(ctx context.Context, publisherId uint) error
 
 	AddTopic(ctx context.Context, topicName string) (book.Topic, error)
 	GetTopic(ctx context.Context, topicID uint) (book.Topic, error)
-	GetAllTopics(ctx context.Context) ([]book.Topic, error)
+	GetTopics(ctx context.Context) ([]book.Topic, error)
 	DeleteTopic(ctx context.Context, topicID uint) error
 
 	AddLanguage(ctx context.Context, langCode string) (book.Language, error)
 	GetLanguage(ctx context.Context, langID uint) (book.Language, error)
-	GetAllLanguages(ctx context.Context) ([]book.Language, error)
-	GetBookLanguages(ctx context.Context, bookID uint) ([]book.Language, error)
+	GetLanguages(ctx context.Context) ([]book.Language, error)
 	DeleteLanguage(ctx context.Context, langID uint) error
 
 	AddBook(ctx context.Context, b book.Book) (book.Book, error)
