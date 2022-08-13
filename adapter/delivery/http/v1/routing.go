@@ -61,33 +61,55 @@ func Routing(repo repository.MySQLRepo) *echo.Echo {
 	e.GET("v1/book/topic/:topicID", GetTopicBooks(repo, validator.ValidateGetTopicBooks(repo)))                 // <GetTopicBooks>     .../v1/book/topic/:topicID
 	e.GET("v1/book/lang/:langID", GetLangBooks(repo, validator.ValidateGetLangBooks(repo)))                     // <GetLangBooks>      .../v1/book/lang/:langID
 
-	userGroup.GET("", GetUser(repo, validator.ValidateGetUser(repo)))                                   // <GetUser>        .../v1/user
-	userGroup.DELETE("", DeleteUser(repo, validator.ValidateDeleteUser(repo)))                          // <DeleteUser>     .../v1/user
-	userGroup.PUT("/password", ChangePassword(repo, validator.ValidateChangePass(repo)))                // <ChangePassword> .../v1/user/password
-	userGroup.PUT("/username", ChangeUsername(repo, validator.ValidateChangeUsername(repo)))            // <ChangeUsername> .../v1/user/username
-	userGroup.POST("/phone", AddPhone(repo, validator.ValidateAddPhone(repo)))                          // <AddPhone>       .../v1/user/phone
-	userGroup.GET("/phone/:phoneID", GetPhone(repo, validator.ValidateGetPhone(repo)))                  // <GetPhone>       .../v1/user/phone/:phoneID
-	userGroup.GET("/phone", GetPhones(repo, validator.ValidateGetPhones(repo)))                         // <GetPhones>      .../v1/user/phone
-	userGroup.DELETE("/phone/:phoneID", DeletePhone(repo, validator.ValidateDeletePhone(repo)))         // <DeletePhone>    .../v1/user/phone/:phoneID
-	userGroup.POST("/address", AddAddress(repo, validator.ValidateAddAddress(repo)))                    // <AddAddress>     .../v1/user/address
-	userGroup.GET("/address/:addressID", GetAddress(repo, validator.ValidateGetAddress(repo)))          // <GetAddress>     .../v1/user/address/:addressID
-	userGroup.GET("/address", GetAddresses(repo, validator.ValidateGetAddresses(repo)))                 // <GetAddresses>   .../v1/user/address
-	userGroup.DELETE("/address/:addressID", DeleteAddress(repo, validator.ValidateDeleteAddress(repo))) // <DeleteAddress>  .../v1/user/address/:addressID
+	userGroup.GET("", GetUser(repo, validator.ValidateGetUser(repo)))                                                   // <GetUser>               .../v1/user
+	userGroup.DELETE("", DeleteUser(repo, validator.ValidateDeleteUser(repo)))                                          // <DeleteUser>            .../v1/user
+	userGroup.PUT("/password", ChangePassword(repo, validator.ValidateChangePass(repo)))                                // <ChangePassword>        .../v1/user/password
+	userGroup.PUT("/username", ChangeUsername(repo, validator.ValidateChangeUsername(repo)))                            // <ChangeUsername>        .../v1/user/username
+	userGroup.POST("/phone", AddPhone(repo, validator.ValidateAddPhone(repo)))                                          // <AddPhone>              .../v1/user/phone
+	userGroup.GET("/phone/:phoneID", GetPhone(repo, validator.ValidateGetPhone(repo)))                                  // <GetPhone>              .../v1/user/phone/:phoneID
+	userGroup.GET("/phone", GetPhones(repo, validator.ValidateGetPhones(repo)))                                         // <GetPhones>             .../v1/user/phone
+	userGroup.DELETE("/phone/:phoneID", DeletePhone(repo, validator.ValidateDeletePhone(repo)))                         // <DeletePhone>           .../v1/user/phone/:phoneID
+	userGroup.POST("/address", AddAddress(repo, validator.ValidateAddAddress(repo)))                                    // <AddAddress>            .../v1/user/address
+	userGroup.GET("/address/:addressID", GetAddress(repo, validator.ValidateGetAddress(repo)))                          // <GetAddress>            .../v1/user/address/:addressID
+	userGroup.GET("/address", GetAddresses(repo, validator.ValidateGetAddresses(repo)))                                 // <GetAddresses>          .../v1/user/address
+	userGroup.DELETE("/address/:addressID", DeleteAddress(repo, validator.ValidateDeleteAddress(repo)))                 // <DeleteAddress>         .../v1/user/address/:addressID
+	userGroup.POST("/order/item", AddItem(repo, validator.ValidateAddItem(repo)))                                       // <AddItem>               .../v1/user/order/item
+	userGroup.PUT("/order/:orderID/item/:itemID/inc", IncreaseQuantity(repo, validator.ValidateIncreaseQuantity(repo))) // <IncreaseQuantity>      .../v1/user/order/:orderID/item/:itemID/inc
+	userGroup.PUT("/order/:orderID/item/:itemID/dec", DecreaseQuantity(repo, validator.ValidateDecreaseQuantity(repo))) // <DecreaseQuantity>      .../v1/user/order/:orderID/item/:itemID/dec
+	userGroup.DELETE("/order/:orderID/item/:itemID", RemoveItem(repo, validator.ValidateRemoveItem(repo)))              // <RemoveItem>            .../v1/user/order/:orderID/item/:itemID
+	userGroup.GET("/order/:orderID/item", GetOrderItems(repo, validator.ValidateGetOrderItems(repo)))                   // <GetOrderItems>         .../v1/user/order/:orderID/item
+	userGroup.POST("/order/:orderID/promo", SetOrderPromo(repo, validator.ValidateSetOrderPromo(repo)))                 // <SetOrderPromo>         .../v1/user/order/:orderID/promo
+	userGroup.DELETE("/order/:orderID/promo", RemoveOrderPromo(repo, validator.ValidateRemoveOrderPromo(repo)))         // <RemoveOrderPromo>      .../v1/user/order/:orderID/promo
+	userGroup.GET("/order", GetUserOrders(repo, validator.ValidateGetUserOrders(repo)))                                 // <GetUserOrders>         .../v1/user/order
+	userGroup.GET("/order/status/:code", GetUserOrdersByStatus(repo, validator.ValidateGetUserOrdersByStatus(repo)))    // <GetUserOrdersByStatus> .../v1/user/order/status/:code
+	userGroup.GET("/promo", GetUserPromos(repo, validator.ValidateGetUserPromos(repo)))                                 // <GetUserPromos>         .../v1/user/promo
 
-	adminGroup.GET("/users", GetUsers(repo))                                                                     // <GetUsers>        .../v1/admin/users
-	adminGroup.GET("", GetAdmin(repo, validator.ValidateGetAdmin(repo)))                                         // <GetAdmin>        .../v1/admin
-	adminGroup.GET("s", GetAdmins(repo))                                                                         // <GetAdmins>       .../v1/admins
-	adminGroup.POST("/author", AddAuthor(repo, validator.ValidateAddAuthor(repo)))                               // <AddAuthor>       .../v1/admin/author
-	adminGroup.DELETE("/author/:authorID", DeleteAuthor(repo, validator.ValidateDeleteAuthor(repo)))             // <DeleteAuthor>    .../v1/admin/author/:authorID
-	adminGroup.POST("/publisher", AddPublisher(repo, validator.ValidateAddPublisher(repo)))                      // <AddPublisher>    .../v1/admin/publisher
-	adminGroup.DELETE("/publisher/:publisherID", DeletePublisher(repo, validator.ValidateDeletePublisher(repo))) // <DeltePublisher>  .../v1/admin/publisher/:publisherID
-	adminGroup.POST("/topic", AddTopic(repo, validator.ValidateAddTopic(repo)))                                  // <AddTopic>        .../v1/admin/topic
-	adminGroup.DELETE("/topic/:topicID", DeleteTopic(repo, validator.ValidateDeleteTopic(repo)))                 // <DeleteTopic>     .../v1/admin/topic/:topicID
-	adminGroup.POST("/lang", AddLanguage(repo, validator.ValidateAddLanguage(repo)))                             // <AddLanguage>     .../v1/admin/lang
-	adminGroup.DELETE("/lang/:langID", DeleteLanguage(repo, validator.ValidateDeleteLanguage(repo)))             // <DeleteLanguage>  .../v1/admin/lang/:langID
-	adminGroup.POST("/book", AddBook(repo, validator.ValidateAddBook(repo)))                                     // <AddBook>         .../v1/admin/book
-	adminGroup.POST("/discount/:bookID", SetBookDiscount(repo, validator.ValidateSetBookDiscount(repo)))         // <SetBookDiscount> .../v1/admin/discount/:bookID
-	adminGroup.POST("/book/:bookID", EditBook(repo, validator.ValidateEditBook(repo)))                           // <EditBook>        .../v1/admin/book/:bookID
-	adminGroup.DELETE("/book/:bookID", DeleteBook(repo, validator.ValidateDeleteBook(repo)))                     // <DeleteBook>      .../v1/admin/book/:bookID
+	adminGroup.GET("/users", GetUsers(repo))                                                                               // <GetUsers>              .../v1/admin/users
+	adminGroup.GET("", GetAdmin(repo, validator.ValidateGetAdmin(repo)))                                                   // <GetAdmin>              .../v1/admin
+	adminGroup.GET("s", GetAdmins(repo))                                                                                   // <GetAdmins>             .../v1/admins
+	adminGroup.POST("/author", AddAuthor(repo, validator.ValidateAddAuthor(repo)))                                         // <AddAuthor>             .../v1/admin/author
+	adminGroup.DELETE("/author/:authorID", DeleteAuthor(repo, validator.ValidateDeleteAuthor(repo)))                       // <DeleteAuthor>          .../v1/admin/author/:authorID
+	adminGroup.POST("/publisher", AddPublisher(repo, validator.ValidateAddPublisher(repo)))                                // <AddPublisher>          .../v1/admin/publisher
+	adminGroup.DELETE("/publisher/:publisherID", DeletePublisher(repo, validator.ValidateDeletePublisher(repo)))           // <DeltePublisher>        .../v1/admin/publisher/:publisherID
+	adminGroup.POST("/topic", AddTopic(repo, validator.ValidateAddTopic(repo)))                                            // <AddTopic>              .../v1/admin/topic
+	adminGroup.DELETE("/topic/:topicID", DeleteTopic(repo, validator.ValidateDeleteTopic(repo)))                           // <DeleteTopic>           .../v1/admin/topic/:topicID
+	adminGroup.POST("/lang", AddLanguage(repo, validator.ValidateAddLanguage(repo)))                                       // <AddLanguage>           .../v1/admin/lang
+	adminGroup.DELETE("/lang/:langID", DeleteLanguage(repo, validator.ValidateDeleteLanguage(repo)))                       // <DeleteLanguage>        .../v1/admin/lang/:langID
+	adminGroup.POST("/book", AddBook(repo, validator.ValidateAddBook(repo)))                                               // <AddBook>               .../v1/admin/book
+	adminGroup.POST("/discount/:bookID", SetBookDiscount(repo, validator.ValidateSetBookDiscount(repo)))                   // <SetBookDiscount>       .../v1/admin/discount/:bookID
+	adminGroup.POST("/book/:bookID", EditBook(repo, validator.ValidateEditBook(repo)))                                     // <EditBook>              .../v1/admin/book/:bookID
+	adminGroup.DELETE("/book/:bookID", DeleteBook(repo, validator.ValidateDeleteBook(repo)))                               // <DeleteBook>            .../v1/admin/book/:bookID
+	adminGroup.POST("/promo", CreatePromoCode(repo, validator.ValidateCreatePromoCode(repo)))                              // <CreatePromoCode>       .../v1/admin/promo
+	adminGroup.DELETE("/promo/:promoID", DeletePromoCode(repo, validator.ValidateDeletePromoCode(repo)))                   // <DeletePromoCode>       .../v1/admin/promo/:promoID
+	adminGroup.POST("/order/:orderID/status", SetOrderStatus(repo, validator.ValidateSetOrderStatus(repo)))                // <SetOrderStatus>        .../v1/admin/order/:orderID/status
+	adminGroup.POST("/order/:orderID/stn", SetOrderSTN(repo, validator.ValidateSetOrderSTN(repo)))                         // <SetOrderSTN>           .../v1/admin/order/:orderID/stn
+	adminGroup.DELETE("/order/:orderID", DeleteOrder(repo, validator.ValidateDeleteOrder(repo)))                           // <DeleteOrder>           .../v1/admin/order/:orderID
+	adminGroup.GET("/order", GetAllOrders(repo))                                                                           // <GetAllOrders>          .../v1/admin/order
+	adminGroup.GET("/order/status/:code", GetAllOrdersByStatus(repo, validator.ValidateGetAllOrdersByStatus(repo)))        // <GetAllOrdersByStatus>  .../v1/admin/order/:status
+	adminGroup.GET("/order/date", GetDateOrders(repo, validator.ValidateGetDateOrders(repo)))                              // <GetDateOrders>         .../v1/admin/order/date
+	adminGroup.GET("/order/date/status/:code", GetDateOrdersByStatus(repo, validator.ValidateGetDateOrdersByStatus(repo))) // <GetDateOrdersByStatus> .../v1/admin/order/date/status/:code
+	adminGroup.GET("/promo", GetAllPromos(repo))                                                                           // <GetAllPromos>          .../v1/admin/promo
+	adminGroup.GET("/promo/order/:orderID", GetPromoByOrder(repo, validator.ValidateGetPromoByOrder(repo)))                // <GetPromoByOrder>       .../v1/admin/promo/order/:orderID
+
 	return e
 }
