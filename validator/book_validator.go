@@ -2,7 +2,7 @@ package validator
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
 	"github.com/XBozorg/bookstore/dto"
@@ -21,7 +21,7 @@ func doesAuthorExist(ctx context.Context, repo book.ValidatorRepo) validation.Ru
 		}
 
 		if !ok {
-			return fmt.Errorf("author %d does not exist", authorID)
+			return errors.New("author does not exist")
 		}
 		return nil
 	}
@@ -37,7 +37,7 @@ func doesBookExist(ctx context.Context, repo book.ValidatorRepo) validation.Rule
 		}
 
 		if !ok {
-			return fmt.Errorf("book %d does not exist", bookID)
+			return errors.New("book does not exist")
 		}
 		return nil
 	}
@@ -53,7 +53,7 @@ func doesPublisherExist(ctx context.Context, repo book.ValidatorRepo) validation
 		}
 
 		if !ok {
-			return fmt.Errorf("publisher %d does not exist", publisherID)
+			return errors.New("publisher does not exist")
 		}
 		return nil
 	}
@@ -69,7 +69,7 @@ func doesTopicExist(ctx context.Context, repo book.ValidatorRepo) validation.Rul
 		}
 
 		if !ok {
-			return fmt.Errorf("topic %d does not exist", topicID)
+			return errors.New("topic does not exist")
 		}
 		return nil
 	}
@@ -85,7 +85,7 @@ func doesLangExist(ctx context.Context, repo book.ValidatorRepo) validation.Rule
 		}
 
 		if !ok {
-			return fmt.Errorf("language %d does not exist", langID)
+			return errors.New("language does not exist")
 		}
 		return nil
 	}

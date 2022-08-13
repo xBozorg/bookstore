@@ -2,7 +2,7 @@ package validator
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -22,7 +22,7 @@ func doesUserExist(ctx context.Context, repo user.ValidatorRepo) validation.Rule
 		}
 
 		if !ok {
-			return fmt.Errorf("user %s does not exist", userID)
+			return errors.New("user does not exist")
 		}
 		return nil
 	}
@@ -38,7 +38,7 @@ func doesPhoneExist(ctx context.Context, repo user.ValidatorRepo) validation.Rul
 		}
 
 		if !ok {
-			return fmt.Errorf("phone %d does not exist", phoneID)
+			return errors.New("phone does not exist")
 		}
 		return nil
 	}
@@ -53,7 +53,7 @@ func doesAddressExist(ctx context.Context, repo user.ValidatorRepo) validation.R
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("address %d does not exist", addressID)
+			return errors.New("address does not exist")
 		}
 		return nil
 	}

@@ -2,7 +2,7 @@ package validator
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
 	"github.com/XBozorg/bookstore/dto"
@@ -21,7 +21,7 @@ func doesAdminExist(ctx context.Context, repo admin.ValidatorRepo) validation.Ru
 		}
 
 		if !ok {
-			return fmt.Errorf("admin %s does not exist", adminID)
+			return errors.New("admin does not exist")
 		}
 		return nil
 	}

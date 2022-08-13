@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/XBozorg/bookstore/entity/user"
@@ -97,12 +96,10 @@ func (m MySQLRepo) ChangePassword(ctx context.Context, userID, oldPass, newPass 
 	if isSame {
 		new, err := HashPassword(newPass)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
 		_, err = m.db.ExecContext(ctx, "UPDATE user SET password = ? WHERE id = ?", new, userID)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
 
