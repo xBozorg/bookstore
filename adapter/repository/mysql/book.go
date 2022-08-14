@@ -333,13 +333,13 @@ func (m MySQLRepo) AddBook(ctx context.Context, b book.Book) (book.Book, error) 
 	result, err := m.db.ExecContext(ctx, `INSERT INTO book 
 
 	(title , isbn , pages , description , year , date , digital_price , 
-	physical_price , physical_stock , pdf , epub , djvu , azw , txt , docx , lang_id , cover_front , cover_back , publisher)
+	physical_price , physical_stock , pdf , epub , djvu , azw , txt , docx , lang_id , cover_front , cover_back , publisher , availability)
 
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 
 		b.Title, b.ISBN, b.Pages, b.Description, b.Year, b.CreationDate,
 		b.Digital.Price, b.Physical.Price, b.Physical.Stock,
-		b.Digital.PDF, b.Digital.EPUB, b.Digital.DJVU, b.Digital.AZW, b.Digital.TXT, b.Digital.DOCX, b.Language.ID, b.CoverFront, b.CoverBack, b.Publisher.ID)
+		b.Digital.PDF, b.Digital.EPUB, b.Digital.DJVU, b.Digital.AZW, b.Digital.TXT, b.Digital.DOCX, b.Language.ID, b.CoverFront, b.CoverBack, b.Publisher.ID, b.Availability)
 
 	if err != nil {
 		return book.Book{}, err
@@ -406,13 +406,13 @@ func (m MySQLRepo) GetBook(ctx context.Context, bookID uint) (book.Book, error) 
 
 	bookResult := m.db.QueryRowContext(ctx, `SELECT title , isbn , pages , description , year , date ,
 	digital_price , digital_discount , physical_price , physical_discount , physical_stock ,
-	lang_id , cover_front , cover_back FROM book WHERE id = ?`, bookID)
+	lang_id , cover_front , cover_back , availability FROM book WHERE id = ?`, bookID)
 
 	b := book.Book{}
 	b.ID = bookID
 
 	err := bookResult.Scan(&b.Title, &b.ISBN, &b.Pages, &b.Description, &b.Year, &b.CreationDate, &b.Digital.Price,
-		&b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount, &b.Physical.Stock, &b.Language.ID, &b.CoverFront, &b.CoverBack)
+		&b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount, &b.Physical.Stock, &b.Language.ID, &b.CoverFront, &b.CoverBack, &b.Availability)
 	if err != nil {
 		return book.Book{}, err
 	}
@@ -483,9 +483,9 @@ func (m MySQLRepo) EditBook(ctx context.Context, b book.Book) (book.Book, error)
 
 	_, err := m.db.ExecContext(ctx, `UPDATE book SET
 		title=? , isbn=? , pages=? , description=? , year=? , digital_price=? , 
-		physical_price=? , physical_stock=? , pdf=? , epub=? , djvu=? , azw=? , txt=? , docx=? , lang_id=? , cover_front=? , cover_back=? , publisher=?
+		physical_price=? , physical_stock=? , pdf=? , epub=? , djvu=? , azw=? , txt=? , docx=? , lang_id=? , cover_front=? , cover_back=? , publisher=? , availability=?
 		WHERE id=? `, b.Title, b.ISBN, b.Pages, b.Description, b.Year, b.Digital.Price,
-		b.Physical.Price, b.Physical.Stock, b.Digital.PDF, b.Digital.EPUB, b.Digital.DJVU, b.Digital.AZW, b.Digital.TXT, b.Digital.DOCX, b.Language.ID, b.CoverFront, b.CoverBack, b.Publisher.ID, b.ID)
+		b.Physical.Price, b.Physical.Stock, b.Digital.PDF, b.Digital.EPUB, b.Digital.DJVU, b.Digital.AZW, b.Digital.TXT, b.Digital.DOCX, b.Language.ID, b.CoverFront, b.CoverBack, b.Publisher.ID, b.Availability, b.ID)
 
 	if err != nil {
 		return book.Book{}, err
@@ -509,7 +509,7 @@ func (m MySQLRepo) GetAllBooksFull(ctx context.Context) ([]book.Book, error) {
 		err := result.Scan(&b.ID, &b.Title, &b.ISBN, &b.Pages, &b.Description, &b.Year, &b.CreationDate,
 			&b.Digital.Price, &b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount,
 			&b.Physical.Stock, &b.Digital.PDF, &b.Digital.EPUB, &b.Digital.DJVU, &b.Digital.AZW, &b.Digital.TXT, &b.Digital.DOCX,
-			&b.Language.ID, &b.CoverFront, &b.CoverBack)
+			&b.Language.ID, &b.CoverFront, &b.CoverBack, &b.Availability)
 		if err != nil {
 			return []book.Book{}, err
 		}
@@ -522,7 +522,7 @@ func (m MySQLRepo) GetAllBooksFull(ctx context.Context) ([]book.Book, error) {
 func (m MySQLRepo) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 
 	result, err := m.db.QueryContext(ctx, `SELECT id , title , digital_price , digital_discount ,
-	physical_price , physical_discount , physical_stock , cover_front FROM book`)
+	physical_price , physical_discount , physical_stock , cover_front , availability FROM book`)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -533,7 +533,7 @@ func (m MySQLRepo) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 	for result.Next() {
 		var b book.Book
 		err := result.Scan(&b.ID, &b.Title, &b.Digital.Price, &b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount,
-			&b.Physical.Stock, &b.CoverFront)
+			&b.Physical.Stock, &b.CoverFront, &b.Availability)
 		if err != nil {
 			return []book.Book{}, err
 		}
@@ -546,7 +546,7 @@ func (m MySQLRepo) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 func (m MySQLRepo) GetAuthorBooks(ctx context.Context, authorID uint) ([]book.Book, error) {
 
 	result, err := m.db.QueryContext(ctx, `SELECT id , title , digital_price , digital_discount ,
-	physical_price , physical_discount , physical_stock , cover_front FROM book
+	physical_price , physical_discount , physical_stock , cover_front , availability FROM book
 	WHERE id IN (SELECT book_id FROM book_author WHERE author_id = ?)`, authorID)
 
 	if err != nil {
@@ -558,7 +558,7 @@ func (m MySQLRepo) GetAuthorBooks(ctx context.Context, authorID uint) ([]book.Bo
 	for result.Next() {
 		var b book.Book
 		err := result.Scan(&b.ID, &b.Title, &b.Digital.Price, &b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount,
-			&b.Physical.Stock, &b.CoverFront)
+			&b.Physical.Stock, &b.CoverFront, &b.Availability)
 		if err != nil {
 			return []book.Book{}, err
 		}
@@ -571,7 +571,7 @@ func (m MySQLRepo) GetAuthorBooks(ctx context.Context, authorID uint) ([]book.Bo
 func (m MySQLRepo) GetTopicBooks(ctx context.Context, topicID uint) ([]book.Book, error) {
 
 	result, err := m.db.QueryContext(ctx, `SELECT id , title , digital_price , digital_discount ,
-	physical_price , physical_discount , physical_stock , cover_front FROM book
+	physical_price , physical_discount , physical_stock , cover_front , availability FROM book
 	WHERE id IN (SELECT book_id FROM book_topic WHERE topic_id = ?)`, topicID)
 
 	if err != nil {
@@ -583,7 +583,7 @@ func (m MySQLRepo) GetTopicBooks(ctx context.Context, topicID uint) ([]book.Book
 	for result.Next() {
 		var b book.Book
 		err := result.Scan(&b.ID, &b.Title, &b.Digital.Price, &b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount,
-			&b.Physical.Stock, &b.CoverFront)
+			&b.Physical.Stock, &b.CoverFront, &b.Availability)
 		if err != nil {
 			return []book.Book{}, err
 		}
@@ -596,7 +596,7 @@ func (m MySQLRepo) GetTopicBooks(ctx context.Context, topicID uint) ([]book.Book
 func (m MySQLRepo) GetPublisherBooks(ctx context.Context, publisherID uint) ([]book.Book, error) {
 
 	result, err := m.db.QueryContext(ctx, `SELECT id , title , digital_price , digital_discount ,
-	physical_price , physical_discount , physical_stock , cover_front FROM book WHERE publisher = ?`, publisherID)
+	physical_price , physical_discount , physical_stock , cover_front , availability FROM book WHERE publisher = ?`, publisherID)
 
 	if err != nil {
 		return []book.Book{}, err
@@ -607,7 +607,7 @@ func (m MySQLRepo) GetPublisherBooks(ctx context.Context, publisherID uint) ([]b
 	for result.Next() {
 		var b book.Book
 		err := result.Scan(&b.ID, &b.Title, &b.Digital.Price, &b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount,
-			&b.Physical.Stock, &b.CoverFront)
+			&b.Physical.Stock, &b.CoverFront, &b.Availability)
 		if err != nil {
 			return []book.Book{}, err
 		}
@@ -621,7 +621,7 @@ func (m MySQLRepo) GetPublisherBooks(ctx context.Context, publisherID uint) ([]b
 func (m MySQLRepo) GetLangBooks(ctx context.Context, langID uint) ([]book.Book, error) {
 
 	result, err := m.db.QueryContext(ctx, `SELECT id , title , digital_price , digital_discount ,
-	physical_price , physical_discount , physical_stock , cover_front FROM book WHERE lang_id = ?`, langID)
+	physical_price , physical_discount , physical_stock , cover_front , availability FROM book WHERE lang_id = ?`, langID)
 
 	if err != nil {
 		return []book.Book{}, err
@@ -632,7 +632,7 @@ func (m MySQLRepo) GetLangBooks(ctx context.Context, langID uint) ([]book.Book, 
 	for result.Next() {
 		var b book.Book
 		err := result.Scan(&b.ID, &b.Title, &b.Digital.Price, &b.Digital.Discount, &b.Physical.Price, &b.Physical.Discount,
-			&b.Physical.Stock, &b.CoverFront)
+			&b.Physical.Stock, &b.CoverFront, &b.Availability)
 		if err != nil {
 			return []book.Book{}, err
 		}

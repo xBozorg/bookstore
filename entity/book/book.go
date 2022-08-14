@@ -1,5 +1,12 @@
 package book
 
+const (
+	NotAvailable uint = iota
+	DigitalAvailable
+	PhysicalAvailable
+	BundleAvailable
+)
+
 type Book struct {
 	ID           uint      `json:"id"`
 	Title        string    `json:"title"`
@@ -16,6 +23,7 @@ type Book struct {
 	CreationDate string    `json:"creationDate"`
 	Digital      Digital   `json:"digital"`
 	Physical     Physical  `json:"physical"`
+	Availability uint      `json:"availability"`
 }
 
 type Digital struct {

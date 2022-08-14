@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/XBozorg/bookstore/entity/book"
 	"github.com/XBozorg/bookstore/entity/order"
 )
 
@@ -132,34 +133,64 @@ func (m MySQLRepo) AddItem(ctx context.Context, item order.Item, userID string) 
 		return err
 	}
 
+	availability, err := m.CheckAvailability(ctx, item.BookID)
+	if err != nil {
+		return err
+	}
+
 	orderID, err := m.CheckOpenOrder(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	if item.Type == order.Bundle {
+	switch {
+	case item.Type == order.Bundle && availability == book.BundleAvailable:
+
 		_, err = m.db.ExecContext(ctx,
 			`INSERT INTO item 
     				(book_id , type , quantity , order_id) 
     				VALUES (?,?,?,?) , (?,?,?,?)`,
-			item.BookID, 0, 1, orderID, // Digital
-			item.BookID, 1, item.Quantity, orderID, // Physical
+			item.BookID, order.Digital, 1, orderID, // Digital
+			item.BookID, order.Physical, item.Quantity, orderID, // Physical
 		)
 
 		if err != nil {
 			return err
 		}
-	} else {
+
+	case item.Type == order.Physical && availability == book.PhysicalAvailable:
+
 		_, err = m.db.ExecContext(ctx,
 			`INSERT INTO item 
     				(book_id , type , quantity , order_id) 
     				VALUES (?,?,?,?)`,
-			item.BookID, item.Type, item.Quantity, orderID,
+			item.BookID, order.Physical, item.Quantity, orderID,
 		)
 
 		if err != nil {
 			return err
 		}
+
+	case item.Type == order.Digital && availability == book.DigitalAvailable:
+		_, err = m.db.ExecContext(ctx,
+			`INSERT INTO item 
+				(book_id , type , quantity , order_id) 
+				VALUES (?,?,?,?)`,
+			item.BookID, order.Digital, 1, orderID,
+		)
+
+		if err != nil {
+			return err
+		}
+
+	case availability == 0:
+		return errors.New("item unavailable")
+	case item.Type > 2:
+		return errors.New("invalid item type")
+	case availability > 3:
+		return errors.New("invalid item availability")
+	default:
+		return errors.New("type / availability does not match")
 	}
 
 	err = m.SetOrderTotal(ctx, orderID)
@@ -203,6 +234,18 @@ func (m MySQLRepo) CheckQuantity(ctx context.Context, quantity, bookID uint) err
 		return errors.New("requested item quantity is bigger than the available stock")
 	}
 	return nil
+}
+
+func (m MySQLRepo) CheckAvailability(ctx context.Context, bookID uint) (uint, error) {
+
+	var availability uint
+	result := m.db.QueryRowContext(ctx, "SELECT availability FROM book WHERE id = ?", bookID)
+	err := result.Scan(&availability)
+	if err != nil {
+		return 0, err
+	}
+
+	return availability, nil
 }
 
 func (m MySQLRepo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) error {

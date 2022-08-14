@@ -13,6 +13,7 @@ type Repository interface {
 	GetOrderItems(ctx context.Context, orderID uint) ([]order.Item, error)
 	RemoveItem(ctx context.Context, itemID, orderID uint) error
 	CheckQuantity(ctx context.Context, quantity, bookID uint) error
+	CheckAvailability(ctx context.Context, bookID uint) (uint, error)
 
 	CreatePromoCode(ctx context.Context, promo order.Promo, userID string) error
 	DeletePromoCode(ctx context.Context, promoID uint) error
