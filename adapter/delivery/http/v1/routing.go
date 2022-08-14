@@ -83,6 +83,10 @@ func Routing(repo repository.MySQLRepo) *echo.Echo {
 	userGroup.GET("/order", GetUserOrders(repo, validator.ValidateGetUserOrders(repo)))                                 // <GetUserOrders>         .../v1/user/order
 	userGroup.GET("/order/status/:code", GetUserOrdersByStatus(repo, validator.ValidateGetUserOrdersByStatus(repo)))    // <GetUserOrdersByStatus> .../v1/user/order/status/:code
 	userGroup.GET("/promo", GetUserPromos(repo, validator.ValidateGetUserPromos(repo)))                                 // <GetUserPromos>         .../v1/user/promo
+	userGroup.GET("/dashboard/digital", GetUserDigitalBooks(repo, validator.ValidateGetUserDigitalBooks(repo)))         // <GetUserDigitalBooks>   .../v1/user/dashboard/digital
+	userGroup.GET("/dashboard/download/:bookID", DownloadBook(repo, validator.ValidateDownloadBook(repo)))              // <DownloadBook>          .../v1/user/dashboard/download/:bookID
+	userGroup.PUT("/order/:orderID/phone", SetOrderPhone(repo, validator.ValidateSetOrderPhone(repo)))                  // <SetOrderPhone>         .../v1/user/order/:orderID/phone
+	userGroup.PUT("/order/:orderID/address", SetOrderAddress(repo, validator.ValidateSetOrderAddress(repo)))            // <SetOrderAddress>       .../v1/user/order/:orderID/address
 
 	adminGroup.GET("/users", GetUsers(repo))                                                                               // <GetUsers>              .../v1/admin/users
 	adminGroup.GET("", GetAdmin(repo, validator.ValidateGetAdmin(repo)))                                                   // <GetAdmin>              .../v1/admin
