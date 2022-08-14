@@ -33,4 +33,7 @@ type (
 
 	ValidateGetUserPromos   func(ctx context.Context, req dto.GetUserPromosRequest) error
 	ValidateGetPromoByOrder func(ctx context.Context, req dto.GetPromoByOrderRequest) error
+
+	ValidateSetOrderPhone   func(ctx context.Context, req dto.SetOrderPhoneRequest) error
+	ValidateSetOrderAddress func(ctx context.Context, req dto.SetOrderAddressRequest) error
 )

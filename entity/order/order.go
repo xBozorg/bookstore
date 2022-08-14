@@ -17,4 +17,6 @@ type Order struct {
 	ReceiptionDate string `json:"receiptionDate"`
 	Items          []Item `json:"Items"`
 	Promo          Promo  `json:"promo"`
+	PhoneID        uint   `json:"phoneID"`
+	AddressID      uint   `json:"addressID"`
 }

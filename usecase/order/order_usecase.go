@@ -13,6 +13,9 @@ type UseCase interface {
 	GetOrderItems(ctx context.Context, req dto.GetOrderItemsRequest) (dto.GetOrderItemsResponse, error)
 	RemoveItem(ctx context.Context, req dto.RemoveItemRequest) (dto.RemoveItemResponse, error)
 
+	SetOrderPhone(ctx context.Context, req dto.SetOrderPhoneRequest) (dto.SetOrderPhoneResponse, error)
+	SetOrderAddress(ctx context.Context, req dto.SetOrderAddressRequest) (dto.SetOrderAddressResponse, error)
+
 	CreatePromoCode(ctx context.Context, req dto.CreatePromoCodeRequest) (dto.CreatePromoCodeResponse, error)
 	DeletePromoCode(ctx context.Context, req dto.CreatePromoCodeRequest) (dto.CreatePromoCodeResponse, error)
 
@@ -287,4 +290,24 @@ func (u UseCaseRepo) GetPromoByOrder(ctx context.Context, req dto.GetPromoByOrde
 	}
 
 	return dto.GetPromoByOrderResponse{Promo: promo}, nil
+}
+
+func (u UseCaseRepo) SetOrderPhone(ctx context.Context, req dto.SetOrderPhoneRequest) (dto.SetOrderPhoneResponse, error) {
+
+	err := u.repo.SetOrderPhone(ctx, req.OrderID, req.PhoneID)
+	if err != nil {
+		return dto.SetOrderPhoneResponse{}, err
+	}
+
+	return dto.SetOrderPhoneResponse{}, nil
+}
+
+func (u UseCaseRepo) SetOrderAddress(ctx context.Context, req dto.SetOrderAddressRequest) (dto.SetOrderAddressResponse, error) {
+
+	err := u.repo.SetOrderAddress(ctx, req.OrderID, req.AddressID)
+	if err != nil {
+		return dto.SetOrderAddressResponse{}, err
+	}
+
+	return dto.SetOrderAddressResponse{}, nil
 }

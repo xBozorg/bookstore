@@ -336,3 +336,21 @@ func ValidateGetPromoByOrder(repo repository.MySQLRepo) order.ValidateGetPromoBy
 		)
 	}
 }
+
+func ValidateSetOrderPhone(repo repository.MySQLRepo) order.ValidateSetOrderPhone {
+	return func(ctx context.Context, req dto.SetOrderPhoneRequest) error {
+		return validation.ValidateStruct(&req,
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
+			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, repo))),
+		)
+	}
+}
+
+func ValidateSetOrderAddress(repo repository.MySQLRepo) order.ValidateSetOrderAddress {
+	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
+		return validation.ValidateStruct(&req,
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
+			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, repo))),
+		)
+	}
+}

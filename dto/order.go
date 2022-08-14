@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/XBozorg/bookstore/entity/order"
+import (
+	"github.com/XBozorg/bookstore/entity/order"
+)
 
 type CreateEmptyOrderRequest struct {
 	UserID string `json:"userID"`
@@ -154,3 +156,15 @@ type GetUserPromosRequest struct {
 type GetUserPromosResponse struct {
 	Promos []order.Promo `json:"promos"`
 }
+
+type SetOrderPhoneRequest struct {
+	OrderID uint `json:"orderID"`
+	PhoneID uint `json:"phoneID"`
+}
+type SetOrderPhoneResponse struct{}
+
+type SetOrderAddressRequest struct {
+	OrderID   uint `json:"orderID"`
+	AddressID uint `json:"addressID"`
+}
+type SetOrderAddressResponse struct{}

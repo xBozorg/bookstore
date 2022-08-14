@@ -10,10 +10,14 @@ type Repository interface {
 	AddItem(ctx context.Context, item order.Item, userID string) error
 	IncreaseQuantity(ctx context.Context, itemID, orderID uint) error
 	DecreaseQuantity(ctx context.Context, itemID, orderID uint) error
+	DecreasePhysicalStock(ctx context.Context, quantity, bookID uint) error
 	GetOrderItems(ctx context.Context, orderID uint) ([]order.Item, error)
 	RemoveItem(ctx context.Context, itemID, orderID uint) error
 	CheckQuantity(ctx context.Context, quantity, bookID uint) error
 	CheckAvailability(ctx context.Context, bookID uint) (uint, error)
+
+	SetOrderPhone(ctx context.Context, orderID, phoneID uint) error
+	SetOrderAddress(ctx context.Context, orderID, addressID uint) error
 
 	CreatePromoCode(ctx context.Context, promo order.Promo, userID string) error
 	DeletePromoCode(ctx context.Context, promoID uint) error

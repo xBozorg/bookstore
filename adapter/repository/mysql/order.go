@@ -153,7 +153,11 @@ func (m MySQLRepo) AddItem(ctx context.Context, item order.Item, userID string) 
 			item.BookID, order.Digital, 1, orderID, // Digital
 			item.BookID, order.Physical, item.Quantity, orderID, // Physical
 		)
+		if err != nil {
+			return err
+		}
 
+		err := m.DecreasePhysicalStock(ctx, item.Quantity, item.BookID)
 		if err != nil {
 			return err
 		}
@@ -166,7 +170,11 @@ func (m MySQLRepo) AddItem(ctx context.Context, item order.Item, userID string) 
     				VALUES (?,?,?,?)`,
 			item.BookID, order.Physical, item.Quantity, orderID,
 		)
+		if err != nil {
+			return err
+		}
 
+		err := m.DecreasePhysicalStock(ctx, item.Quantity, item.BookID)
 		if err != nil {
 			return err
 		}
@@ -248,6 +256,26 @@ func (m MySQLRepo) CheckAvailability(ctx context.Context, bookID uint) (uint, er
 	return availability, nil
 }
 
+func (m MySQLRepo) SetOrderPhone(ctx context.Context, orderID, phoneID uint) error {
+
+	_, err := m.db.ExecContext(ctx, "UPDATE orders SET phone_id = ? WHERE id = ?", phoneID, orderID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m MySQLRepo) SetOrderAddress(ctx context.Context, orderID, addressID uint) error {
+
+	_, err := m.db.ExecContext(ctx, "UPDATE orders SET address_id = ? WHERE id = ?", addressID, orderID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m MySQLRepo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) error {
 
 	_, err := m.db.ExecContext(ctx,
@@ -258,6 +286,16 @@ func (m MySQLRepo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) e
 		item.type != ?
 		AND
 		item.quantity < (SELECT book.physical_stock FROM book WHERE book.id = item.book_id)`, itemID, order.Digital)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = m.db.ExecContext(ctx,
+		`UPDATE book SET physical_stock = physical_stock - 1 
+		WHERE item.id = ? 
+		AND 
+		book.id = item.book_id`, itemID)
 
 	if err != nil {
 		return err
@@ -286,7 +324,27 @@ func (m MySQLRepo) DecreaseQuantity(ctx context.Context, itemID, orderID uint) e
 		return err
 	}
 
+	_, err = m.db.ExecContext(ctx,
+		`UPDATE book SET physical_stock = physical_stock + 1 
+		WHERE item.id = ? 
+		AND 
+		book.id = item.book_id`, itemID)
+
+	if err != nil {
+		return err
+	}
+
 	err = m.SetOrderTotal(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m MySQLRepo) DecreasePhysicalStock(ctx context.Context, quantity, bookID uint) error {
+
+	_, err := m.db.ExecContext(ctx, "UPDATE book SET physical_stock = physical_stock - ? WHERE id = ?", quantity, bookID)
 	if err != nil {
 		return err
 	}
@@ -296,7 +354,25 @@ func (m MySQLRepo) DecreaseQuantity(ctx context.Context, itemID, orderID uint) e
 
 func (m MySQLRepo) RemoveItem(ctx context.Context, itemID, orderID uint) error {
 
-	_, err := m.db.ExecContext(ctx, "DELETE FROM item WHERE id = ?", itemID)
+	result := m.db.QueryRowContext(ctx, "SELECT type FROM item WHERE id = ?", itemID)
+	var itemType uint
+	err := result.Scan(&itemType)
+	if err != nil {
+		return err
+	}
+
+	if itemType == order.Physical || itemType == order.Bundle {
+		_, err = m.db.ExecContext(ctx,
+			`UPDATE book SET physical_stock = physical_stock + (SELECT quantity FROM item WHERE id = ?)
+			WHERE 
+			book.id = (SELECT book_id FROM item WHERE id = ?)`, itemID, itemID)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = m.db.ExecContext(ctx, "DELETE FROM item WHERE id = ?", itemID)
 	if err != nil {
 		return err
 	}
@@ -358,10 +434,34 @@ func (m MySQLRepo) DeletePromoCode(ctx context.Context, promoID uint) error {
 
 func (m MySQLRepo) SetOrderStatus(ctx context.Context, status, orderID uint) error {
 
-	_, err := m.db.ExecContext(ctx, "UPDATE orders SET status = ? WHERE id = ?", status, orderID)
-
+	var isShipmentOrder bool
+	result := m.db.QueryRowContext(ctx, `SELECT 1 FROM item WHERE type != 0 AND order_id = ?`, orderID)
+	err := result.Scan(&isShipmentOrder)
 	if err != nil {
 		return err
+	}
+
+	if status != order.StatusCreated && isShipmentOrder {
+
+		_, err := m.db.ExecContext(ctx,
+			`UPDATE orders SET status = ? 
+			WHERE id = ? 
+			AND 
+			(SELECT 1 FROM orders WHERE phone_id IS NOT NULL AND address_id IS NOT NULL)`,
+			status, orderID)
+
+		if err != nil {
+			return err
+		}
+
+	} else {
+
+		_, err := m.db.ExecContext(ctx, "UPDATE orders SET status = ? WHERE id = ?", status, orderID)
+
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -562,11 +662,13 @@ func (m MySQLRepo) GetAllOrders(ctx context.Context) ([]order.Order, error) {
 	var rd sql.NullTime
 	var stn sql.NullString
 	var pid sql.NullInt64
+	var phid sql.NullInt64
+	var aid sql.NullInt64
 
 	orders := []order.Order{}
 	for result.Next() {
 		var o order.Order
-		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid)
+		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid, &phid, &aid)
 		if err != nil {
 			return []order.Order{}, err
 		}
@@ -574,6 +676,8 @@ func (m MySQLRepo) GetAllOrders(ctx context.Context) ([]order.Order, error) {
 		o.ReceiptionDate = rd.Time.Format("2006-01-02 15:04:05")
 		o.STN = stn.String
 		o.Promo.ID = uint(pid.Int64)
+		o.PhoneID = uint(phid.Int64)
+		o.AddressID = uint(aid.Int64)
 
 		orders = append(orders, o)
 	}
@@ -591,11 +695,13 @@ func (m MySQLRepo) GetUserOrders(ctx context.Context, userID string) ([]order.Or
 	var rd sql.NullTime
 	var stn sql.NullString
 	var pid sql.NullInt64
+	var phid sql.NullInt64
+	var aid sql.NullInt64
 
 	orders := []order.Order{}
 	for result.Next() {
 		var o order.Order
-		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid)
+		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid, &phid, &aid)
 		if err != nil {
 			return []order.Order{}, err
 		}
@@ -603,6 +709,8 @@ func (m MySQLRepo) GetUserOrders(ctx context.Context, userID string) ([]order.Or
 		o.ReceiptionDate = rd.Time.Format("2006-01-02 15:04:05")
 		o.STN = stn.String
 		o.Promo.ID = uint(pid.Int64)
+		o.PhoneID = uint(phid.Int64)
+		o.AddressID = uint(aid.Int64)
 
 		orders = append(orders, o)
 	}
@@ -620,11 +728,13 @@ func (m MySQLRepo) GetDateOrders(ctx context.Context, date string) ([]order.Orde
 	var rd sql.NullTime
 	var stn sql.NullString
 	var pid sql.NullInt64
+	var phid sql.NullInt64
+	var aid sql.NullInt64
 
 	orders := []order.Order{}
 	for result.Next() {
 		var o order.Order
-		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid)
+		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid, &phid, &aid)
 		if err != nil {
 			return []order.Order{}, err
 		}
@@ -632,6 +742,8 @@ func (m MySQLRepo) GetDateOrders(ctx context.Context, date string) ([]order.Orde
 		o.ReceiptionDate = rd.Time.Format("2006-01-02 15:04:05")
 		o.STN = stn.String
 		o.Promo.ID = uint(pid.Int64)
+		o.PhoneID = uint(phid.Int64)
+		o.AddressID = uint(aid.Int64)
 
 		orders = append(orders, o)
 	}
@@ -649,11 +761,13 @@ func (m MySQLRepo) GetDateOrdersByStatus(ctx context.Context, date string, statu
 	var rd sql.NullTime
 	var stn sql.NullString
 	var pid sql.NullInt64
+	var phid sql.NullInt64
+	var aid sql.NullInt64
 
 	orders := []order.Order{}
 	for result.Next() {
 		var o order.Order
-		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid)
+		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid, &phid, &aid)
 		if err != nil {
 			return []order.Order{}, err
 		}
@@ -661,6 +775,8 @@ func (m MySQLRepo) GetDateOrdersByStatus(ctx context.Context, date string, statu
 		o.ReceiptionDate = rd.Time.Format("2006-01-02 15:04:05")
 		o.STN = stn.String
 		o.Promo.ID = uint(pid.Int64)
+		o.PhoneID = uint(phid.Int64)
+		o.AddressID = uint(aid.Int64)
 
 		orders = append(orders, o)
 	}
@@ -678,11 +794,13 @@ func (m MySQLRepo) GetAllOrdersByStatus(ctx context.Context, status uint) ([]ord
 	var rd sql.NullTime
 	var stn sql.NullString
 	var pid sql.NullInt64
+	var phid sql.NullInt64
+	var aid sql.NullInt64
 
 	orders := []order.Order{}
 	for result.Next() {
 		var o order.Order
-		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid)
+		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid, &phid, &aid)
 		if err != nil {
 			return []order.Order{}, err
 		}
@@ -690,6 +808,8 @@ func (m MySQLRepo) GetAllOrdersByStatus(ctx context.Context, status uint) ([]ord
 		o.ReceiptionDate = rd.Time.Format("2006-01-02 15:04:05")
 		o.STN = stn.String
 		o.Promo.ID = uint(pid.Int64)
+		o.PhoneID = uint(phid.Int64)
+		o.AddressID = uint(aid.Int64)
 
 		orders = append(orders, o)
 	}
@@ -707,11 +827,13 @@ func (m MySQLRepo) GetUserOrdersByStatus(ctx context.Context, userID string, sta
 	var rd sql.NullTime
 	var stn sql.NullString
 	var pid sql.NullInt64
+	var phid sql.NullInt64
+	var aid sql.NullInt64
 
 	orders := []order.Order{}
 	for result.Next() {
 		var o order.Order
-		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid)
+		err := result.Scan(&o.ID, &o.CreationDate, &rd, &o.Status, &o.Total, &stn, &o.UserID, &pid, &phid, &aid)
 		if err != nil {
 			return []order.Order{}, err
 		}
@@ -719,6 +841,8 @@ func (m MySQLRepo) GetUserOrdersByStatus(ctx context.Context, userID string, sta
 		o.ReceiptionDate = rd.Time.Format("2006-01-02 15:04:05")
 		o.STN = stn.String
 		o.Promo.ID = uint(pid.Int64)
+		o.PhoneID = uint(phid.Int64)
+		o.AddressID = uint(aid.Int64)
 
 		orders = append(orders, o)
 	}

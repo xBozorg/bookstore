@@ -773,3 +773,75 @@ func GetUserPromos(repo repository.MySQLRepo, validator order.ValidateGetUserPro
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
+func SetOrderPhone(repo repository.MySQLRepo, validator order.ValidateSetOrderPhone) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := dto.SetOrderPhoneRequest{}
+
+		if err := c.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		oid, err := strconv.ParseUint(c.Param("orderID"), 10, 64)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest)
+		}
+		req.OrderID = uint(oid)
+
+		if err := validator(c.Request().Context(), req); err != nil {
+
+			if err.Error() == "order does not exist" {
+				return echo.NewHTTPError(http.StatusNotFound, "order does not exist")
+			}
+
+			if err.Error() == "phone does not exist" {
+				return echo.NewHTTPError(http.StatusNotFound, "phone does not exist")
+			}
+
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		resp, err := order.New(repo).SetOrderPhone(c.Request().Context(), req)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, resp)
+	}
+}
+
+func SetOrderAddress(repo repository.MySQLRepo, validator order.ValidateSetOrderAddress) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := dto.SetOrderAddressRequest{}
+
+		if err := c.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		oid, err := strconv.ParseUint(c.Param("orderID"), 10, 64)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest)
+		}
+		req.OrderID = uint(oid)
+
+		if err := validator(c.Request().Context(), req); err != nil {
+
+			if err.Error() == "order does not exist" {
+				return echo.NewHTTPError(http.StatusNotFound, "order does not exist")
+			}
+
+			if err.Error() == "address does not exist" {
+				return echo.NewHTTPError(http.StatusNotFound, "address does not exist")
+			}
+
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		resp, err := order.New(repo).SetOrderAddress(c.Request().Context(), req)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, resp)
+	}
+}
