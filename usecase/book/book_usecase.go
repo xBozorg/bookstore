@@ -37,6 +37,9 @@ type UseCase interface {
 	GetTopicBooks(ctx context.Context, req dto.GetTopicBooksRequest) (dto.GetTopicBooksResponse, error)
 	GetLangBooks(ctx context.Context, req dto.GetLangBooksRequest) (dto.GetLangBooksResponse, error)
 	DeleteBook(ctx context.Context, req dto.DeleteBookRequest) (dto.DeleteBookResponse, error)
+
+	GetUserDigitalBooks(ctx context.Context, req dto.GetUserDigitalBooksRequest) (dto.GetUserDigitalBooksResponse, error)
+	DownloadBook(ctx context.Context, req dto.DownloadBookRequest) (dto.DownloadBookResponse, error)
 }
 
 type UseCaseRepo struct {
@@ -314,4 +317,14 @@ func (u UseCaseRepo) DeleteBook(ctx context.Context, req dto.DeleteBookRequest) 
 	}
 
 	return dto.DeleteBookResponse{}, nil
+}
+
+func (u UseCaseRepo) GetUserDigitalBooks(ctx context.Context, req dto.GetUserDigitalBooksRequest) (dto.GetUserDigitalBooksResponse, error) {
+
+	books, err := u.repo.GetUserDigitalBooks(ctx, req.UserID)
+	if err != nil {
+		return dto.GetUserDigitalBooksResponse{}, err
+	}
+
+	return dto.GetUserDigitalBooksResponse{Books: books}, nil
 }

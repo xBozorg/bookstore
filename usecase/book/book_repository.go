@@ -42,6 +42,8 @@ type Repository interface {
 	GetTopicBooks(ctx context.Context, topicID uint) ([]book.Book, error)
 	GetLangBooks(ctx context.Context, langID uint) ([]book.Book, error)
 	DeleteBook(ctx context.Context, bookID uint) error
+
+	GetUserDigitalBooks(ctx context.Context, userID string) ([]book.Book, error)
 }
 
 type ValidatorRepo interface {
@@ -50,4 +52,5 @@ type ValidatorRepo interface {
 	DoesTopicExist(ctx context.Context, topicID uint) (bool, error)
 	DoesLanguageExist(ctx context.Context, langID uint) (bool, error)
 	DoesBookExist(ctx context.Context, bookID uint) (bool, error)
+	DoesUserAccessBook(ctx context.Context, userID string, bookID uint) (bool, error)
 }

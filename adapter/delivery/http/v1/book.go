@@ -620,3 +620,67 @@ func DeleteBook(repo repository.MySQLRepo, validator book.ValidateDeleteBook) ec
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
+func GetUserDigitalBooks(repo repository.MySQLRepo, validator book.ValidateGetUserDigitalBooks) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := dto.GetUserDigitalBooksRequest{}
+
+		userCookie, _ := c.Cookie("ID")
+		req.UserID = userCookie.Value
+
+		if err := validator(c.Request().Context(), req); err != nil {
+
+			if err.Error() == "user does not exist" {
+				return echo.NewHTTPError(http.StatusNotFound, "user does not exist")
+			}
+
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		resp, err := book.New(repo).GetUserDigitalBooks(c.Request().Context(), req)
+		if err != nil {
+
+			if strings.Contains(err.Error(), "no rows") {
+				return echo.NewHTTPError(http.StatusNotFound)
+			}
+
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, resp)
+	}
+}
+
+func DownloadBook(repo repository.MySQLRepo, validator book.ValidateDownloadBook) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := dto.DownloadBookRequest{}
+
+		if err := c.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		userCookie, _ := c.Cookie("ID")
+		req.UserID = userCookie.Value
+
+		bid, err := strconv.ParseUint(c.Param("bookID"), 10, 64)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest)
+		}
+		req.BookID = uint(bid)
+
+		if err := validator(c.Request().Context(), req); err != nil {
+
+			if err.Error() == "book does not exist" {
+				return echo.NewHTTPError(http.StatusNotFound, "book does not exist")
+			}
+
+			if err.Error() == "access denied" {
+				return echo.NewHTTPError(http.StatusForbidden, "you don't have access to this book")
+			}
+
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		return c.File(req.Path)
+	}
+}

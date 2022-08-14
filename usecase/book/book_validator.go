@@ -36,4 +36,7 @@ type (
 	ValidateGetTopicBooks     func(ctx context.Context, req dto.GetTopicBooksRequest) error
 	ValidateGetLangBooks      func(ctx context.Context, req dto.GetLangBooksRequest) error
 	ValidateDeleteBook        func(ctx context.Context, req dto.DeleteBookRequest) error
+
+	ValidateGetUserDigitalBooks func(ctx context.Context, req dto.GetUserDigitalBooksRequest) error
+	ValidateDownloadBook        func(ctx context.Context, req dto.DownloadBookRequest) error
 )

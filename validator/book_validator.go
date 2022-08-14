@@ -91,6 +91,23 @@ func doesLangExist(ctx context.Context, repo book.ValidatorRepo) validation.Rule
 	}
 }
 
+func doesUserAccessBook(ctx context.Context, repo book.ValidatorRepo, userID string) validation.RuleFunc {
+	return func(value interface{}) error {
+		bookID := value.(uint)
+
+		ok, err := repo.DoesUserAccessBook(ctx, userID, bookID)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			return errors.New("access denied")
+		}
+
+		return nil
+	}
+}
+
 func ValidateAddAuthor(repo repository.MySQLRepo) book.ValidateAddAuthor {
 	return func(ctx context.Context, req dto.AddAuthorRequest) error {
 		return validation.ValidateStruct(&req,
@@ -346,6 +363,26 @@ func ValidateDeleteBook(repo repository.MySQLRepo) book.ValidateDeleteBook {
 	return func(ctx context.Context, req dto.DeleteBookRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
+		)
+	}
+}
+
+func ValidateGetUserDigitalBooks(repo repository.MySQLRepo) book.ValidateGetUserDigitalBooks {
+	return func(ctx context.Context, req dto.GetUserDigitalBooksRequest) error {
+		return validation.ValidateStruct(&req,
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+		)
+	}
+}
+
+func ValidateDownloadBook(repo repository.MySQLRepo) book.ValidateDownloadBook {
+	return func(ctx context.Context, req dto.DownloadBookRequest) error {
+		return validation.ValidateStruct(&req,
+			validation.Field(&req.BookID, validation.Required,
+				validation.By(doesBookExist(ctx, repo)),
+				validation.By(doesUserAccessBook(ctx, repo, req.UserID))),
+
+			validation.Field(&req.Path, is.ASCII, validation.Length(10, 150)),
 		)
 	}
 }

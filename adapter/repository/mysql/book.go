@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/XBozorg/bookstore/entity/book"
+	"github.com/XBozorg/bookstore/entity/order"
 )
 
 func (m MySQLRepo) DoesAuthorExist(ctx context.Context, authorID uint) (bool, error) {
@@ -652,4 +653,51 @@ func (m MySQLRepo) DeleteBook(ctx context.Context, bookID uint) error {
 	}
 
 	return nil
+}
+
+func (m MySQLRepo) GetUserDigitalBooks(ctx context.Context, userID string) ([]book.Book, error) {
+
+	result, err := m.db.QueryContext(ctx,
+		`SELECT id,title,isbn,pages,description,year,pdf,epub,djvu,azw,txt,docx,lang_id,cover_front,publisher FROM book
+			WHERE book.id IN
+				(SELECT book_id FROM item
+					WHERE item.order_id = (SELECT id FROM orders WHERE user_id = ? AND status != ?)
+					AND
+					type = 0
+				)`, userID, order.StatusCreated)
+	if err != nil {
+		return []book.Book{}, err
+	}
+
+	books := []book.Book{}
+	for result.Next() {
+		var b book.Book
+		err := result.Scan(&b.ID, &b.Title, &b.ISBN, &b.Pages, &b.Description,
+			&b.Year, &b.Digital.PDF, &b.Digital.EPUB, &b.Digital.DJVU, &b.Digital.AZW,
+			&b.Digital.TXT, &b.Digital.DOCX, &b.Language.ID, &b.CoverFront, &b.Publisher.ID)
+
+		if err != nil {
+			return []book.Book{}, err
+		}
+
+		books = append(books, b)
+	}
+
+	return books, nil
+}
+
+func (m MySQLRepo) DoesUserAccessBook(ctx context.Context, userID string, bookID uint) (bool, error) {
+
+	result := m.db.QueryRowContext(ctx,
+		`SELECT 1 FROM item WHERE type = ? AND book_id = ? AND order_id IN
+		( SELECT id FROM orders WHERE user_id = ? AND status != ? )`,
+		order.Digital, bookID, userID, order.StatusCreated)
+
+	var access bool
+	err := result.Scan(&access)
+	if err != nil {
+		return false, err
+	}
+
+	return access, nil
 }

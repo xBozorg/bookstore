@@ -164,3 +164,17 @@ type DeleteBookRequest struct {
 	BookID uint `json:"bookID"`
 }
 type DeleteBookResponse struct{}
+
+type DownloadBookRequest struct {
+	UserID string `json:"userID"`
+	BookID uint   `json:"bookID"`
+	Path   string `json:"path"`
+}
+type DownloadBookResponse struct{}
+
+type GetUserDigitalBooksRequest struct {
+	UserID string `json:"userID"`
+}
+type GetUserDigitalBooksResponse struct {
+	Books []book.Book `json:"books"`
+}
