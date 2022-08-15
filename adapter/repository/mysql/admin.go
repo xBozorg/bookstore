@@ -9,12 +9,22 @@ import (
 
 func (m MySQLRepo) LoginAdmin(ctx context.Context, email, password string) (admin.Admin, error) {
 
-	result := m.db.QueryRowContext(ctx, "SELECT id, email, password, phonenumber FROM admin WHERE email = ?", email)
+	result := m.db.QueryRowContext(
+		ctx,
+		"SELECT id, email, password, phonenumber FROM admin WHERE email = ?",
+		email,
+	)
 
 	var a admin.Admin
 	var passHash string
 
-	err := result.Scan(&a.ID, &a.Email, &passHash, &a.PhoneNumber)
+	err := result.Scan(
+		&a.ID,
+		&a.Email,
+		&passHash,
+		&a.PhoneNumber,
+	)
+
 	if err != nil {
 		return admin.Admin{}, err
 	}
@@ -23,12 +33,17 @@ func (m MySQLRepo) LoginAdmin(ctx context.Context, email, password string) (admi
 	if isSame {
 		return a, nil
 	}
+
 	return admin.Admin{}, errors.New("password does not match")
 }
 
 func (m MySQLRepo) DoesAdminExist(ctx context.Context, adminID string) (bool, error) {
 
-	result := m.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM admin WHERE id = ?)", adminID)
+	result := m.db.QueryRowContext(
+		ctx,
+		"SELECT EXISTS(SELECT 1 FROM admin WHERE id = ?)",
+		adminID,
+	)
 
 	var doesExist bool
 	err := result.Scan(&doesExist)
@@ -41,11 +56,19 @@ func (m MySQLRepo) DoesAdminExist(ctx context.Context, adminID string) (bool, er
 
 func (m MySQLRepo) GetAdmin(ctx context.Context, adminID string) (admin.Admin, error) {
 
-	result := m.db.QueryRowContext(ctx, "SELECT id, email, phonenumber FROM admin WHERE id = ?", adminID)
+	result := m.db.QueryRowContext(
+		ctx,
+		"SELECT id, email, phonenumber FROM admin WHERE id = ?",
+		adminID,
+	)
 
 	a := admin.Admin{}
 
-	err := result.Scan(&a.ID, &a.Email, &a.PhoneNumber)
+	err := result.Scan(
+		&a.ID,
+		&a.Email,
+		&a.PhoneNumber,
+	)
 	if err != nil {
 		return admin.Admin{}, err
 	}
@@ -55,7 +78,11 @@ func (m MySQLRepo) GetAdmin(ctx context.Context, adminID string) (admin.Admin, e
 
 func (m MySQLRepo) GetAdmins(ctx context.Context) ([]admin.Admin, error) {
 
-	result, err := m.db.QueryContext(ctx, "SELECT id, email, phonenumber FROM admin")
+	result, err := m.db.QueryContext(
+		ctx,
+		"SELECT id, email, phonenumber FROM admin",
+	)
+
 	if err != nil {
 		return []admin.Admin{}, err
 	}
@@ -64,7 +91,13 @@ func (m MySQLRepo) GetAdmins(ctx context.Context) ([]admin.Admin, error) {
 	admins := []admin.Admin{}
 	for result.Next() {
 		a := admin.Admin{}
-		err := result.Scan(&a.ID, &a.Email, &a.PhoneNumber)
+
+		err := result.Scan(
+			&a.ID,
+			&a.Email,
+			&a.PhoneNumber,
+		)
+
 		if err != nil {
 			return []admin.Admin{}, nil
 		}
