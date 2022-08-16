@@ -4,7 +4,6 @@ import (
 	"github.com/XBozorg/bookstore/adapter/auth"
 	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
 	"github.com/XBozorg/bookstore/config"
-	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,11 +15,14 @@ func Routing(repo repository.MySQLRepo) *echo.Echo {
 	userGroup := e.Group("/v1/user")
 	adminGroup := e.Group("/v1/admin")
 
+	userGroup.Use(auth.TokenRefresherMiddleware)
+	adminGroup.Use(auth.TokenRefresherMiddleware)
+
 	userGroup.Use(middleware.JWTWithConfig(
 		middleware.JWTConfig{
 			Claims:                  &auth.Claims{},
 			SigningKey:              []byte(config.Conf.GetJWTConfig().Secret),
-			TokenLookup:             "cookie:access-token",
+			TokenLookup:             "cookie:access-token,cookie:refresh-token",
 			ErrorHandlerWithContext: auth.UserJWTErrorChecker,
 			SigningMethod:           "HS256",
 		},
@@ -29,14 +31,11 @@ func Routing(repo repository.MySQLRepo) *echo.Echo {
 		middleware.JWTConfig{
 			Claims:                  &auth.Claims{},
 			SigningKey:              []byte(config.Conf.GetJWTConfig().Secret),
-			TokenLookup:             "cookie:access-token",
+			TokenLookup:             "cookie:access-token,cookie:refresh-token",
 			ErrorHandlerWithContext: auth.AdminJWTErrorChecker,
 			SigningMethod:           "HS256",
 		},
 	))
-
-	userGroup.Use(auth.TokenRefresherMiddleware(dto.LoginUserResponse{}.User.ID, "user"))
-	adminGroup.Use(auth.TokenRefresherMiddleware(dto.LoginAdminResponse{}.Admin.ID, "admin"))
 
 	userGroup.Use(UserAuth)
 	adminGroup.Use(AdminAuth)

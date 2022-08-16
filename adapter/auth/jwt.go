@@ -7,13 +7,13 @@ import (
 
 	"github.com/XBozorg/bookstore/config"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
 type Claims struct {
 	Role string `json:"role"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 const (
@@ -42,14 +42,14 @@ func GenerateTokensAndSetCookies(c echo.Context, id, role string) error {
 
 func generateAccessToken(secret, id, role string) (string, time.Time, error) {
 
-	expirationTime := time.Now().Add(1 * time.Hour)
+	expirationTime := time.Now().Add(15 * time.Minute)
 
 	return generateToken(id, role, expirationTime, []byte(secret))
 }
 
 func generateRefreshToken(refreshSecret, id, role string) (string, time.Time, error) {
 
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(10 * 24 * time.Hour)
 
 	return generateToken(id, role, expirationTime, []byte(refreshSecret))
 }
@@ -58,9 +58,9 @@ func generateToken(id, role string, expirationTime time.Time, secret []byte) (st
 
 	claims := &Claims{
 		Role: role,
-		StandardClaims: jwt.StandardClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   id,
-			ExpiresAt: expirationTime.Unix(),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
@@ -133,39 +133,42 @@ func AdminJWTErrorChecker(err error, c echo.Context) error {
 	return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 }
 
-func TokenRefresherMiddleware(id, role string) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
 
-			if c.Get("ID") == nil {
-				return next(c)
+		_, errAccess := c.Cookie("access-token")
+		_, errID := c.Cookie("ID")
+		refreshCookie, errRefresh := c.Cookie("refresh-token")
+
+		// if access-token or ID not exists but refresh-token exists
+		if (errAccess != nil || errID != nil) && errRefresh == nil {
+
+			token, err := jwt.Parse(
+				refreshCookie.Value,
+				func(token *jwt.Token) (interface{}, error) {
+					return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
+				},
+			)
+
+			if err != nil {
+				return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 			}
 
-			u := c.Get("ID").(*jwt.Token)
-			claims := u.Claims.(*Claims)
+			claims := token.Claims.(jwt.MapClaims)
+			role := claims["role"].(string)
+			id := claims["sub"].(string)
+			exp := claims["exp"].(float64)
 
-			if time.Until(time.Unix(claims.ExpiresAt, 0)) < 15*time.Minute {
-
-				rc, err := c.Cookie(refreshTokenCookieName)
-				if err == nil && rc != nil {
-
-					tkn, err := jwt.ParseWithClaims(rc.Value, claims, func(token *jwt.Token) (interface{}, error) {
-						return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
-					})
-					if err != nil {
-						if err == jwt.ErrSignatureInvalid {
-							c.Response().Writer.WriteHeader(http.StatusUnauthorized)
-						}
-					}
-
-					if tkn != nil && tkn.Valid {
-
-						_ = GenerateTokensAndSetCookies(c, id, role)
-					}
+			if (time.Until(time.Unix(int64(exp), 0)) > 0) && token != nil && token.Valid {
+				err = GenerateTokensAndSetCookies(c, id, role)
+				if err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 				}
 			}
 
-			return next(c)
+			return c.Redirect(http.StatusMovedPermanently, c.Request().URL.String())
 		}
+
+		return next(c)
 	}
 }
