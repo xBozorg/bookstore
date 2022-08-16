@@ -348,9 +348,11 @@ func (m MySQLRepo) SetOrderPhone(ctx context.Context, orderID, phoneID uint) err
 
 	_, err := m.db.ExecContext(
 		ctx,
-		"UPDATE orders SET phone_id = ? WHERE id = ?",
+		`UPDATE orders SET phone_id = ? WHERE id = ?
+		AND (SELECT 1 FROM phone WHERE id = ? AND phone.userID = orders.user_id)`,
 		phoneID,
 		orderID,
+		phoneID,
 	)
 
 	if err != nil {
@@ -364,9 +366,11 @@ func (m MySQLRepo) SetOrderAddress(ctx context.Context, orderID, addressID uint)
 
 	_, err := m.db.ExecContext(
 		ctx,
-		"UPDATE orders SET address_id = ? WHERE id = ?",
+		`UPDATE orders SET address_id = ? WHERE id = ?
+		AND (SELECT 1 FROM address WHERE id = ? AND address.userID = orders.user_id)`,
 		addressID,
 		orderID,
+		addressID,
 	)
 
 	if err != nil {
