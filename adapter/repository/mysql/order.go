@@ -631,11 +631,12 @@ func (m MySQLRepo) SetOrderStatus(ctx context.Context, status, orderID uint) err
 		_, err := m.db.ExecContext(
 			ctx,
 
-			`UPDATE orders SET status = ? 
-			WHERE id = ? 
-			AND 
-			(SELECT 1 FROM orders WHERE phone_id IS NOT NULL AND address_id IS NOT NULL)`,
-
+			`UPDATE orders AS o , (SELECT phone_id , address_id FROM orders WHERE id = ?) AS PA
+			SET status = ? 
+			WHERE PA.phone_id IS NOT NULL AND PA.address_id IS NOT NULL
+			AND id = ?
+			`,
+			orderID,
 			status,
 			orderID,
 		)
@@ -1335,4 +1336,164 @@ func (m MySQLRepo) GetPromoByOrder(ctx context.Context, orderID uint) (order.Pro
 	p.MaxPrice = uint(maxPrice.Int64)
 
 	return p, nil
+}
+
+func (m MySQLRepo) GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.OrderPaymentInfo, error) {
+
+	result := m.db.QueryRowContext(
+		ctx,
+		`SELECT total , user_id , phone_id FROM orders WHERE id = ? AND status = ?`,
+		orderID,
+		order.StatusCreated,
+	)
+
+	info := order.OrderPaymentInfo{}
+
+	var uid string
+	var pid sql.NullInt64
+
+	err := result.Scan(
+		&info.Total,
+		&uid,
+		&pid,
+	)
+	if err != nil {
+		return order.OrderPaymentInfo{}, err
+	}
+
+	result = m.db.QueryRowContext(
+		ctx,
+		`SELECT email FROM user WHERE id = ?`,
+		uid,
+	)
+	err = result.Scan(
+		&info.Email,
+	)
+	if err != nil {
+		return order.OrderPaymentInfo{}, err
+	}
+
+	result = m.db.QueryRowContext(
+		ctx,
+		`SELECT phonenumber FROM phone WHERE id = ?`,
+		uint(pid.Int64),
+	)
+	err = result.Scan(
+		&info.Phone,
+	)
+	if err != nil {
+		return order.OrderPaymentInfo{}, err
+	}
+
+	return info, nil
+}
+
+func (m MySQLRepo) GetOrderTotal(ctx context.Context, orderID uint) (uint, error) {
+
+	result := m.db.QueryRowContext(
+		ctx,
+		`SELECT total FROM orders WHERE id = ?`,
+		orderID,
+	)
+
+	var total uint
+	err := result.Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+func (m MySQLRepo) ZarinpalCreateOpenOrder(ctx context.Context, orderID uint, authority string) error {
+
+	_, err := m.db.ExecContext(
+		ctx,
+		`INSERT INTO zarinpal (order_id , authority , code) VALUES (?,?,0)`,
+		orderID,
+		authority,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m MySQLRepo) ZarinpalDoesAuthorityExist(ctx context.Context, authority string) (bool, error) {
+
+	result := m.db.QueryRowContext(
+		ctx,
+		`SELECT 1 FROM zarinpal WHERE authority = ?`,
+		authority,
+	)
+
+	var exist bool
+	err := result.Scan(&exist)
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
+}
+
+func (m MySQLRepo) ZarinpalGetOrderByAuthority(ctx context.Context, authority string) (order.ZarinpalOrder, error) {
+
+	result := m.db.QueryRowContext(
+		ctx,
+		`SELECT * FROM zarinpal WHERE authority = ?`,
+		authority,
+	)
+
+	var refID sql.NullInt64
+	var zOrder order.ZarinpalOrder
+
+	err := result.Scan(
+		&zOrder.ID,
+		&zOrder.OrderID,
+		&zOrder.Authority,
+		&refID,
+		&zOrder.Code,
+	)
+	if err != nil {
+		return order.ZarinpalOrder{}, err
+	}
+	if refID.Valid {
+		zOrder.RefID = int(refID.Int64)
+	}
+
+	return zOrder, nil
+}
+
+func (m MySQLRepo) ZarinpalSetOrderPayment(ctx context.Context, zarinpalOrderID uint, authority string, refID, code int) error {
+
+	_, err := m.db.ExecContext(
+		ctx,
+		`UPDATE zarinpal SET ref_id = ? , code = ? WHERE id = ? AND authority = ?`,
+		refID,
+		code,
+		zarinpalOrderID,
+		authority,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m MySQLRepo) SetOrderReceiptDate(ctx context.Context, orderID uint) error {
+
+	_, err := m.db.ExecContext(
+		ctx,
+		`UPDATE orders SET receipt_date = ? WHERE id = ?`,
+		time.Now().Format("2006-01-02 15:04:05"),
+		orderID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
