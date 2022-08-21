@@ -7,9 +7,10 @@ import (
 var Conf Config
 
 type Config struct {
-	mySQL MySQLConfig `mapstructure:"mysql"`
-	jwt   JwtConfig   `mapstructure:"jwt"`
-	echo  EchoConfig  `mapstructure:"echo"`
+	mySQL    MySQLConfig    `mapstructure:"mysql"`
+	jwt      JwtConfig      `mapstructure:"jwt"`
+	echo     EchoConfig     `mapstructure:"echo"`
+	zarinpal ZarinpalConfig `mapstructure:"zarinpal"`
 }
 
 type MySQLConfig struct {
@@ -29,10 +30,15 @@ type EchoConfig struct {
 	HttpsPort    string `mapstructure:"https_port"`
 	LoggerFormat string `mapstructure:"logger_format"`
 }
+type ZarinpalConfig struct {
+	MerchantID string `mapstructure:"merchant_id"`
+	Sandbox    bool   `mapstructure:"sandbox"`
+}
 
-func (c Config) GetMySQlConfig() MySQLConfig { return c.mySQL }
-func (c Config) GetJWTConfig() JwtConfig     { return c.jwt }
-func (c Config) GetEchoConfig() EchoConfig   { return c.echo }
+func (c *Config) GetMySQlConfig() *MySQLConfig       { return &c.mySQL }
+func (c *Config) GetJWTConfig() *JwtConfig           { return &c.jwt }
+func (c *Config) GetEchoConfig() *EchoConfig         { return &c.echo }
+func (c *Config) GetZarinpalConfig() *ZarinpalConfig { return &c.zarinpal }
 
 func (c *Config) Read() error {
 	v := viper.New()
@@ -51,6 +57,9 @@ func (c *Config) Read() error {
 		return err
 	}
 	if err := v.UnmarshalKey("echo", &c.echo); err != nil {
+		return err
+	}
+	if err := v.UnmarshalKey("zarinpal", &c.zarinpal); err != nil {
 		return err
 	}
 
