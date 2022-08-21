@@ -20,3 +20,17 @@ type Order struct {
 	PhoneID        uint   `json:"phoneID"`
 	AddressID      uint   `json:"addressID"`
 }
+
+type OrderPaymentInfo struct {
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+	Total uint   `json:"total"`
+}
+
+type ZarinpalOrder struct {
+	ID        uint   `json:"id"`
+	OrderID   uint   `json:"orderID"`
+	Authority string `json:"authority"`
+	RefID     int    `json:"refID"`
+	Code      int    `json:"code"`
+}
