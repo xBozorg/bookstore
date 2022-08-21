@@ -25,7 +25,7 @@ func init() {
 	log.I.Infoln("Config file Loaded")
 
 	mysqlConf := config.Conf.GetMySQlConfig() // connect to mysql
-	repo, err = repository.Connect(&mysqlConf)
+	repo, err = repository.Connect(mysqlConf)
 	if err != nil {
 		log.E.Panic(err)
 	}
