@@ -86,6 +86,11 @@ type SetOrderPromoRequest struct {
 }
 type SetOrderPromoResponse struct{}
 
+type SetOrderReceiptDateRequest struct {
+	OrderID uint `json:"orderID"`
+}
+type SetOrderReceiptDateResponse struct{}
+
 type RemoveOrderPromoRequest struct {
 	OrderID uint `json:"orderID"`
 }
@@ -95,6 +100,11 @@ type DeleteOrderRequest struct {
 	OrderID uint `json:"orderID"`
 }
 type DeleteOrderResponse struct{}
+
+type DoesOrderExistRequest struct {
+	OrderID uint `json:"orderID"`
+}
+type DoesOrderExistResponse struct{}
 
 type GetAllOrdersRequest struct{}
 type GetAllOrdersResponse struct {
@@ -168,3 +178,45 @@ type SetOrderAddressRequest struct {
 	AddressID uint `json:"addressID"`
 }
 type SetOrderAddressResponse struct{}
+
+type GetOrderPaymentInfoRequest struct {
+	OrderID uint `json:"orderID"`
+}
+type GetOrderPaymentInfoResponse struct {
+	Total uint   `json:"total"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+}
+
+type GetOrderTotalRequest struct {
+	OrderID uint `json:"orderID"`
+}
+type GetOrderTotalResponse struct {
+	Total uint `json:"total"`
+}
+
+type ZarinpalPaymentRequset struct {
+	OrderID uint `json:"orderID"`
+}
+
+type ZarinpalCreateOpenOrderRequest struct {
+	OrderID   uint   `json:"orderID"`
+	Authority string `json:"authority"`
+}
+type ZarinpalCreateOpenOrderResponse struct{}
+
+type ZarinpalGetOrderByAuthorityRequest struct {
+	Authority string `json:"authority"`
+}
+type ZarinpalGetOrderByAuthorityResponse struct {
+	ZarinpalOrder order.ZarinpalOrder `json:"zarinpalOrder"`
+}
+
+type ZarinpalSetOrderPaymentRequest struct {
+	ZarinpalOrderID uint   `json:"zarinpalOrderID"`
+	Authority       string `json:"authority"`
+	RefID           int    `json:"refID"`
+	Code            int    `json:"code"`
+}
+type ZarinpalSetOrderPaymentResponse struct {
+}
