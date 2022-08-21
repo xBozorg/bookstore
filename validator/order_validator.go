@@ -3,6 +3,7 @@ package validator
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
@@ -18,7 +19,7 @@ func doesItemExist(ctx context.Context, repo order.ValidatorRepo) validation.Rul
 		itemID := value.(uint)
 
 		ok, err := repo.DoesItemExist(ctx, itemID)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "no rows") {
 			return err
 		}
 
@@ -34,7 +35,7 @@ func doesPromoExist(ctx context.Context, repo order.ValidatorRepo) validation.Ru
 		promoID := value.(uint)
 
 		ok, err := repo.DoesPromoExist(ctx, promoID)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "no rows") {
 			return err
 		}
 
@@ -50,7 +51,7 @@ func doesPromoCodeExist(ctx context.Context, repo order.ValidatorRepo, userID st
 		promoCode := value.(string)
 
 		ok, err := repo.DoesPromoCodeExist(ctx, promoCode, userID)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "no rows") {
 			return err
 		}
 
@@ -66,7 +67,7 @@ func doesOrderExist(ctx context.Context, repo order.ValidatorRepo) validation.Ru
 		orderID := value.(uint)
 
 		ok, err := repo.DoesOrderExist(ctx, orderID)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "no rows") {
 			return err
 		}
 
@@ -82,7 +83,7 @@ func doesOrderOpen(ctx context.Context, repo order.ValidatorRepo) validation.Rul
 		orderID := value.(uint)
 
 		ok, err := repo.DoesOrderOpen(ctx, orderID)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "no rows") {
 			return err
 		}
 
@@ -191,6 +192,14 @@ func ValidateGetOrderItems(repo repository.MySQLRepo) order.ValidateGetOrderItem
 	return func(ctx context.Context, req dto.GetOrderItemsRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
+		)
+	}
+}
+
+func ValidateGetOrderPaymentInfo(repo repository.MySQLRepo) order.ValidateGetOrderPaymentInfo {
+	return func(ctx context.Context, req dto.GetOrderPaymentInfoRequest) error {
+		return validation.ValidateStruct(&req,
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo)), validation.By(doesOrderOpen(ctx, repo))),
 		)
 	}
 }
@@ -347,6 +356,15 @@ func ValidateSetOrderPhone(repo repository.MySQLRepo) order.ValidateSetOrderPhon
 }
 
 func ValidateSetOrderAddress(repo repository.MySQLRepo) order.ValidateSetOrderAddress {
+	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
+		return validation.ValidateStruct(&req,
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
+			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, repo))),
+		)
+	}
+}
+
+func ValidateZarinpalPayment(repo repository.MySQLRepo) order.ValidateSetOrderAddress {
 	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),

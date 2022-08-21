@@ -36,4 +36,6 @@ type (
 
 	ValidateSetOrderPhone   func(ctx context.Context, req dto.SetOrderPhoneRequest) error
 	ValidateSetOrderAddress func(ctx context.Context, req dto.SetOrderAddressRequest) error
+
+	ValidateGetOrderPaymentInfo func(ctx context.Context, req dto.GetOrderPaymentInfoRequest) error
 )
