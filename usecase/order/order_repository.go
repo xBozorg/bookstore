@@ -29,6 +29,7 @@ type Repository interface {
 	SetOrderSTN(ctx context.Context, stn string, orderID uint) error
 	SetOrderTotal(ctx context.Context, orderID uint) error
 	SetOrderPromo(ctx context.Context, orderID uint, promoCode, userID string) error
+	SetOrderReceiptDate(ctx context.Context, orderID uint) error
 	RemoveOrderPromo(ctx context.Context, orderID uint) error
 	DeleteOrder(ctx context.Context, orderID uint) error
 
@@ -42,6 +43,13 @@ type Repository interface {
 	GetAllPromos(ctx context.Context) ([]order.Promo, error)
 	GetPromoByOrder(ctx context.Context, orderID uint) (order.Promo, error)
 	GetUserPromos(ctx context.Context, userID string) ([]order.Promo, error)
+
+	GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.OrderPaymentInfo, error)
+	GetOrderTotal(ctx context.Context, orderID uint) (uint, error)
+
+	ZarinpalCreateOpenOrder(ctx context.Context, orderID uint, authority string) error
+	ZarinpalGetOrderByAuthority(ctx context.Context, authority string) (order.ZarinpalOrder, error)
+	ZarinpalSetOrderPayment(ctx context.Context, zarinpalOrderID uint, authority string, refID, code int) error
 }
 
 type ValidatorRepo interface {
