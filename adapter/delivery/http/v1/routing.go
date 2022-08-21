@@ -2,6 +2,8 @@ package v1
 
 import (
 	"github.com/XBozorg/bookstore/adapter/auth"
+	payment "github.com/XBozorg/bookstore/adapter/payment/zarinpal"
+
 	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/validator"
@@ -86,6 +88,9 @@ func Routing(repo repository.MySQLRepo) *echo.Echo {
 	userGroup.GET("/dashboard/download/:bookID", DownloadBook(repo, validator.ValidateDownloadBook(repo)))              // <DownloadBook>          .../v1/user/dashboard/download/:bookID
 	userGroup.PUT("/order/:orderID/phone", SetOrderPhone(repo, validator.ValidateSetOrderPhone(repo)))                  // <SetOrderPhone>         .../v1/user/order/:orderID/phone
 	userGroup.PUT("/order/:orderID/address", SetOrderAddress(repo, validator.ValidateSetOrderAddress(repo)))            // <SetOrderAddress>       .../v1/user/order/:orderID/address
+
+	userGroup.POST("/order/:orderID/payment/zarinpal", payment.ZarinpalPayment(repo, validator.ValidateGetOrderPaymentInfo(repo))) // <ZarinpalPayment>             .../v1/user/order/:orderID/payment/zarinpal
+	e.GET("v1/payment/zarinpal/check", payment.ZarinpalPaymentVerification(repo))                                                  // <ZarinpalPaymentVerification> .../v1/payment/zarinpal/check
 
 	adminGroup.GET("/users", GetUsers(repo))                                                                               // <GetUsers>              .../v1/admin/users
 	adminGroup.GET("", GetAdmin(repo, validator.ValidateGetAdmin(repo)))                                                   // <GetAdmin>              .../v1/admin
