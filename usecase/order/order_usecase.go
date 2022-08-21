@@ -23,6 +23,7 @@ type UseCase interface {
 	GetOrderStatus(ctx context.Context, req dto.GetOrderStatusRequest) (dto.GetOrderStatusResponse, error)
 	SetOrderSTN(ctx context.Context, req dto.SetOrderSTNRequest) (dto.SetOrderSTNResponse, error)
 	SetOrderPromo(ctx context.Context, req dto.SetOrderPromoRequest) (dto.SetOrderPromoResponse, error)
+	SetOrderReceiptDate(ctx context.Context, req dto.SetOrderReceiptDateRequest) (dto.SetOrderReceiptDateResponse, error)
 	RemoveOrderPromo(ctx context.Context, req dto.RemoveOrderPromoRequest) (dto.RemoveOrderPromoResponse, error)
 	DeleteOrder(ctx context.Context, req dto.DeleteOrderRequest) (dto.DeleteOrderResponse, error)
 
@@ -39,6 +40,13 @@ type UseCase interface {
 
 	//CreateEmptyOrder(ctx context.Context, req dto.CreateEmptyOrderRequest) (dto.CreateEmptyOrderResponse, error)
 	//CheckOpenOrder(ctx context.Context, req dto.CheckOpenOrderRequest) (dto.CheckOpenOrderResponse, error)
+
+	GetOrderPaymentInfo(ctx context.Context, req dto.GetOrderPaymentInfoRequest) (dto.GetOrderPaymentInfoResponse, error)
+	GetOrderTotal(ctx context.Context, req dto.GetOrderTotalRequest) (dto.GetOrderTotalResponse, error)
+
+	ZarinpalCreateOpenOrder(ctx context.Context, req dto.ZarinpalCreateOpenOrderRequest) (dto.ZarinpalCreateOpenOrderResponse, error)
+	ZarinpalGetOrderByAuthority(ctx context.Context, req dto.ZarinpalGetOrderByAuthorityRequest) (dto.ZarinpalGetOrderByAuthorityResponse, error)
+	ZarinpalSetOrderPayment(ctx context.Context, req dto.ZarinpalSetOrderPaymentRequest) (dto.ZarinpalSetOrderPaymentResponse, error)
 }
 
 type UseCaseRepo struct {
@@ -182,6 +190,16 @@ func (u UseCaseRepo) SetOrderPromo(ctx context.Context, req dto.SetOrderPromoReq
 	return dto.SetOrderPromoResponse{}, nil
 }
 
+func (u UseCaseRepo) SetOrderReceiptDate(ctx context.Context, req dto.SetOrderReceiptDateRequest) (dto.SetOrderReceiptDateResponse, error) {
+
+	err := u.repo.SetOrderReceiptDate(ctx, req.OrderID)
+	if err != nil {
+		return dto.SetOrderReceiptDateResponse{}, err
+	}
+
+	return dto.SetOrderReceiptDateResponse{}, nil
+}
+
 func (u UseCaseRepo) RemoveOrderPromo(ctx context.Context, req dto.RemoveOrderPromoRequest) (dto.RemoveOrderPromoResponse, error) {
 
 	err := u.repo.RemoveOrderPromo(ctx, req.OrderID)
@@ -310,4 +328,58 @@ func (u UseCaseRepo) SetOrderAddress(ctx context.Context, req dto.SetOrderAddres
 	}
 
 	return dto.SetOrderAddressResponse{}, nil
+}
+
+func (u UseCaseRepo) GetOrderPaymentInfo(ctx context.Context, req dto.GetOrderPaymentInfoRequest) (dto.GetOrderPaymentInfoResponse, error) {
+
+	info, err := u.repo.GetOrderPaymentInfo(ctx, req.OrderID)
+	if err != nil {
+		return dto.GetOrderPaymentInfoResponse{}, err
+	}
+
+	return dto.GetOrderPaymentInfoResponse{
+		Total: info.Total,
+		Email: info.Email,
+		Phone: info.Phone,
+	}, nil
+}
+
+func (u UseCaseRepo) GetOrderTotal(ctx context.Context, req dto.GetOrderTotalRequest) (dto.GetOrderTotalResponse, error) {
+
+	total, err := u.repo.GetOrderTotal(ctx, req.OrderID)
+	if err != nil {
+		return dto.GetOrderTotalResponse{}, err
+	}
+
+	return dto.GetOrderTotalResponse{Total: total}, nil
+}
+
+func (u UseCaseRepo) ZarinpalCreateOpenOrder(ctx context.Context, req dto.ZarinpalCreateOpenOrderRequest) (dto.ZarinpalCreateOpenOrderResponse, error) {
+
+	err := u.repo.ZarinpalCreateOpenOrder(ctx, req.OrderID, req.Authority)
+	if err != nil {
+		return dto.ZarinpalCreateOpenOrderResponse{}, err
+	}
+
+	return dto.ZarinpalCreateOpenOrderResponse{}, nil
+}
+
+func (u UseCaseRepo) ZarinpalGetOrderByAuthority(ctx context.Context, req dto.ZarinpalGetOrderByAuthorityRequest) (dto.ZarinpalGetOrderByAuthorityResponse, error) {
+
+	zarinpalOrder, err := u.repo.ZarinpalGetOrderByAuthority(ctx, req.Authority)
+	if err != nil {
+		return dto.ZarinpalGetOrderByAuthorityResponse{}, err
+	}
+
+	return dto.ZarinpalGetOrderByAuthorityResponse{ZarinpalOrder: zarinpalOrder}, nil
+}
+
+func (u UseCaseRepo) ZarinpalSetOrderPayment(ctx context.Context, req dto.ZarinpalSetOrderPaymentRequest) (dto.ZarinpalSetOrderPaymentResponse, error) {
+
+	err := u.repo.ZarinpalSetOrderPayment(ctx, req.ZarinpalOrderID, req.Authority, req.RefID, req.Code)
+	if err != nil {
+		return dto.ZarinpalSetOrderPaymentResponse{}, err
+	}
+
+	return dto.ZarinpalSetOrderPaymentResponse{}, nil
 }
