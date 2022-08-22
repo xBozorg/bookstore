@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/book"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -108,7 +108,7 @@ func doesUserAccessBook(ctx context.Context, repo book.ValidatorRepo, userID str
 	}
 }
 
-func ValidateAddAuthor(repo repository.MySQLRepo) book.ValidateAddAuthor {
+func ValidateAddAuthor(repo repository.Repo) book.ValidateAddAuthor {
 	return func(ctx context.Context, req dto.AddAuthorRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Name, validation.Required, is.ASCII, validation.Length(4, 100)),
@@ -116,7 +116,7 @@ func ValidateAddAuthor(repo repository.MySQLRepo) book.ValidateAddAuthor {
 	}
 }
 
-func ValidateGetAuthor(repo repository.MySQLRepo) book.ValidateGetAuthor {
+func ValidateGetAuthor(repo repository.Repo) book.ValidateGetAuthor {
 	return func(ctx context.Context, req dto.GetAuthorRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, repo))),
@@ -124,7 +124,7 @@ func ValidateGetAuthor(repo repository.MySQLRepo) book.ValidateGetAuthor {
 	}
 }
 
-func ValidateDeleteAuthor(repo repository.MySQLRepo) book.ValidateDeleteAuthor {
+func ValidateDeleteAuthor(repo repository.Repo) book.ValidateDeleteAuthor {
 	return func(ctx context.Context, req dto.DeleteAuthorRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, repo))),
@@ -132,7 +132,7 @@ func ValidateDeleteAuthor(repo repository.MySQLRepo) book.ValidateDeleteAuthor {
 	}
 }
 
-func ValidateAddPublisher(repo repository.MySQLRepo) book.ValidateAddPublisher {
+func ValidateAddPublisher(repo repository.Repo) book.ValidateAddPublisher {
 	return func(ctx context.Context, req dto.AddPublisherRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Name, validation.Required, is.ASCII, validation.Length(1, 100)),
@@ -140,7 +140,7 @@ func ValidateAddPublisher(repo repository.MySQLRepo) book.ValidateAddPublisher {
 	}
 }
 
-func ValidateGetPublisher(repo repository.MySQLRepo) book.ValidateGetPublisher {
+func ValidateGetPublisher(repo repository.Repo) book.ValidateGetPublisher {
 	return func(ctx context.Context, req dto.GetPublisherRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, repo))),
@@ -148,7 +148,7 @@ func ValidateGetPublisher(repo repository.MySQLRepo) book.ValidateGetPublisher {
 	}
 }
 
-func ValidateDeletePublisher(repo repository.MySQLRepo) book.ValidateDeletePublisher {
+func ValidateDeletePublisher(repo repository.Repo) book.ValidateDeletePublisher {
 	return func(ctx context.Context, req dto.DeletePublisherRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, repo))),
@@ -156,7 +156,7 @@ func ValidateDeletePublisher(repo repository.MySQLRepo) book.ValidateDeletePubli
 	}
 }
 
-func ValidateAddTopic(repo repository.MySQLRepo) book.ValidateAddTopic {
+func ValidateAddTopic(repo repository.Repo) book.ValidateAddTopic {
 	return func(ctx context.Context, req dto.AddTopicRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Name, validation.Required, is.Alpha, validation.Length(2, 30)),
@@ -164,7 +164,7 @@ func ValidateAddTopic(repo repository.MySQLRepo) book.ValidateAddTopic {
 	}
 }
 
-func ValidateGetTopic(repo repository.MySQLRepo) book.ValidateGetTopic {
+func ValidateGetTopic(repo repository.Repo) book.ValidateGetTopic {
 	return func(ctx context.Context, req dto.GetTopicRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, repo))),
@@ -172,7 +172,7 @@ func ValidateGetTopic(repo repository.MySQLRepo) book.ValidateGetTopic {
 	}
 }
 
-func ValidateDeleteTopic(repo repository.MySQLRepo) book.ValidateDeleteTopic {
+func ValidateDeleteTopic(repo repository.Repo) book.ValidateDeleteTopic {
 	return func(ctx context.Context, req dto.DeleteTopicRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, repo))),
@@ -180,7 +180,7 @@ func ValidateDeleteTopic(repo repository.MySQLRepo) book.ValidateDeleteTopic {
 	}
 }
 
-func ValidateAddLanguage(repo repository.MySQLRepo) book.ValidateAddLanguage {
+func ValidateAddLanguage(repo repository.Repo) book.ValidateAddLanguage {
 	return func(ctx context.Context, req dto.AddLanguageRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.LangCode, validation.Required, is.Alpha, validation.Length(2, 2)),
@@ -188,7 +188,7 @@ func ValidateAddLanguage(repo repository.MySQLRepo) book.ValidateAddLanguage {
 	}
 }
 
-func ValidateGetLanguage(repo repository.MySQLRepo) book.ValidateGetLanguage {
+func ValidateGetLanguage(repo repository.Repo) book.ValidateGetLanguage {
 	return func(ctx context.Context, req dto.GetLanguageRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, repo))),
@@ -196,7 +196,7 @@ func ValidateGetLanguage(repo repository.MySQLRepo) book.ValidateGetLanguage {
 	}
 }
 
-func ValidateDeleteLanguage(repo repository.MySQLRepo) book.ValidateDeleteLanguage {
+func ValidateDeleteLanguage(repo repository.Repo) book.ValidateDeleteLanguage {
 	return func(ctx context.Context, req dto.DeleteLanguageRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, repo))),
@@ -204,7 +204,7 @@ func ValidateDeleteLanguage(repo repository.MySQLRepo) book.ValidateDeleteLangua
 	}
 }
 
-func ValidateAddBook(repo repository.MySQLRepo) book.ValidateAddBook {
+func ValidateAddBook(repo repository.Repo) book.ValidateAddBook {
 	return func(ctx context.Context, req dto.AddBookRequest) error {
 		if errBook := validation.ValidateStruct(&req.Book,
 			validation.Field(&req.Book.Title, validation.Required, is.ASCII, validation.Length(1, 100)),
@@ -256,7 +256,7 @@ func ValidateAddBook(repo repository.MySQLRepo) book.ValidateAddBook {
 	}
 }
 
-func ValidateGetBook(repo repository.MySQLRepo) book.ValidateGetBook {
+func ValidateGetBook(repo repository.Repo) book.ValidateGetBook {
 	return func(ctx context.Context, req dto.GetBookRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
@@ -264,7 +264,7 @@ func ValidateGetBook(repo repository.MySQLRepo) book.ValidateGetBook {
 	}
 }
 
-func ValidateEditBook(repo repository.MySQLRepo) book.ValidateEditBook {
+func ValidateEditBook(repo repository.Repo) book.ValidateEditBook {
 	return func(ctx context.Context, req dto.EditBookRequest) error {
 		if errBook := validation.ValidateStruct(&req.Book,
 			validation.Field(&req.Book.ID, validation.Required, validation.By(doesBookExist(ctx, repo))),
@@ -317,7 +317,7 @@ func ValidateEditBook(repo repository.MySQLRepo) book.ValidateEditBook {
 	}
 }
 
-func ValidateSetBookDiscount(repo repository.MySQLRepo) book.ValidateSetBookDiscount {
+func ValidateSetBookDiscount(repo repository.Repo) book.ValidateSetBookDiscount {
 	return func(ctx context.Context, req dto.SetBookDiscountRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
@@ -327,7 +327,7 @@ func ValidateSetBookDiscount(repo repository.MySQLRepo) book.ValidateSetBookDisc
 	}
 }
 
-func ValidateGetAuthorBooks(repo repository.MySQLRepo) book.ValidateGetAuthorBooks {
+func ValidateGetAuthorBooks(repo repository.Repo) book.ValidateGetAuthorBooks {
 	return func(ctx context.Context, req dto.GetAuthorBooksRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, repo))),
@@ -335,7 +335,7 @@ func ValidateGetAuthorBooks(repo repository.MySQLRepo) book.ValidateGetAuthorBoo
 	}
 }
 
-func ValidateGetPublisherBooks(repo repository.MySQLRepo) book.ValidateGetPublisherBooks {
+func ValidateGetPublisherBooks(repo repository.Repo) book.ValidateGetPublisherBooks {
 	return func(ctx context.Context, req dto.GetPublisherBooksRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, repo))),
@@ -343,7 +343,7 @@ func ValidateGetPublisherBooks(repo repository.MySQLRepo) book.ValidateGetPublis
 	}
 }
 
-func ValidateGetTopicBooks(repo repository.MySQLRepo) book.ValidateGetTopicBooks {
+func ValidateGetTopicBooks(repo repository.Repo) book.ValidateGetTopicBooks {
 	return func(ctx context.Context, req dto.GetTopicBooksRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, repo))),
@@ -351,7 +351,7 @@ func ValidateGetTopicBooks(repo repository.MySQLRepo) book.ValidateGetTopicBooks
 	}
 }
 
-func ValidateGetLangBooks(repo repository.MySQLRepo) book.ValidateGetLangBooks {
+func ValidateGetLangBooks(repo repository.Repo) book.ValidateGetLangBooks {
 	return func(ctx context.Context, req dto.GetLangBooksRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, repo))),
@@ -359,7 +359,7 @@ func ValidateGetLangBooks(repo repository.MySQLRepo) book.ValidateGetLangBooks {
 	}
 }
 
-func ValidateDeleteBook(repo repository.MySQLRepo) book.ValidateDeleteBook {
+func ValidateDeleteBook(repo repository.Repo) book.ValidateDeleteBook {
 	return func(ctx context.Context, req dto.DeleteBookRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
@@ -367,7 +367,7 @@ func ValidateDeleteBook(repo repository.MySQLRepo) book.ValidateDeleteBook {
 	}
 }
 
-func ValidateGetUserDigitalBooks(repo repository.MySQLRepo) book.ValidateGetUserDigitalBooks {
+func ValidateGetUserDigitalBooks(repo repository.Repo) book.ValidateGetUserDigitalBooks {
 	return func(ctx context.Context, req dto.GetUserDigitalBooksRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -375,7 +375,7 @@ func ValidateGetUserDigitalBooks(repo repository.MySQLRepo) book.ValidateGetUser
 	}
 }
 
-func ValidateDownloadBook(repo repository.MySQLRepo) book.ValidateDownloadBook {
+func ValidateDownloadBook(repo repository.Repo) book.ValidateDownloadBook {
 	return func(ctx context.Context, req dto.DownloadBookRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.BookID, validation.Required,

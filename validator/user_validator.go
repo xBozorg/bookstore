@@ -7,7 +7,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/user"
 )
@@ -70,7 +70,7 @@ func ValidateCreateUser(req dto.CreateUserRequest) error {
 
 }
 
-func ValidateGetUser(repo repository.MySQLRepo) user.ValidateGetUser {
+func ValidateGetUser(repo repository.Repo) user.ValidateGetUser {
 	return func(ctx context.Context, req dto.GetUserRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -78,7 +78,7 @@ func ValidateGetUser(repo repository.MySQLRepo) user.ValidateGetUser {
 	}
 }
 
-func ValidateDeleteUser(repo repository.MySQLRepo) user.ValidateDeleteUser {
+func ValidateDeleteUser(repo repository.Repo) user.ValidateDeleteUser {
 	return func(ctx context.Context, req dto.DeleteUserRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -86,7 +86,7 @@ func ValidateDeleteUser(repo repository.MySQLRepo) user.ValidateDeleteUser {
 	}
 }
 
-func ValidateLoginUser(repo repository.MySQLRepo) user.ValidateLoginUser {
+func ValidateLoginUser(repo repository.Repo) user.ValidateLoginUser {
 	return func(ctx context.Context, req dto.LoginUserRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Email, validation.When(req.Username == "", validation.Required.Error("Either Username or Email is required"), is.Email)),
@@ -96,7 +96,7 @@ func ValidateLoginUser(repo repository.MySQLRepo) user.ValidateLoginUser {
 	}
 }
 
-func ValidateChangePass(repo repository.MySQLRepo) user.ValidateChangePass {
+func ValidateChangePass(repo repository.Repo) user.ValidateChangePass {
 	return func(ctx context.Context, req dto.ChangePassRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -106,7 +106,7 @@ func ValidateChangePass(repo repository.MySQLRepo) user.ValidateChangePass {
 	}
 }
 
-func ValidateChangeUsername(repo repository.MySQLRepo) user.ValidateChangeUsername {
+func ValidateChangeUsername(repo repository.Repo) user.ValidateChangeUsername {
 	return func(ctx context.Context, req dto.ChangeUsernameRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -115,7 +115,7 @@ func ValidateChangeUsername(repo repository.MySQLRepo) user.ValidateChangeUserna
 	}
 }
 
-func ValidateAddPhone(repo repository.MySQLRepo) user.ValidateAddPhone {
+func ValidateAddPhone(repo repository.Repo) user.ValidateAddPhone {
 	return func(ctx context.Context, req dto.AddPhoneRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -125,7 +125,7 @@ func ValidateAddPhone(repo repository.MySQLRepo) user.ValidateAddPhone {
 	}
 }
 
-func ValidateGetPhone(repo repository.MySQLRepo) user.ValidateGetPhone {
+func ValidateGetPhone(repo repository.Repo) user.ValidateGetPhone {
 	return func(ctx context.Context, req dto.GetPhoneRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -134,7 +134,7 @@ func ValidateGetPhone(repo repository.MySQLRepo) user.ValidateGetPhone {
 	}
 }
 
-func ValidateGetPhones(repo repository.MySQLRepo) user.ValidateGetPhones {
+func ValidateGetPhones(repo repository.Repo) user.ValidateGetPhones {
 	return func(ctx context.Context, req dto.GetPhonesRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -142,7 +142,7 @@ func ValidateGetPhones(repo repository.MySQLRepo) user.ValidateGetPhones {
 	}
 }
 
-func ValidateDeletePhone(repo repository.MySQLRepo) user.ValidateDeletePhone {
+func ValidateDeletePhone(repo repository.Repo) user.ValidateDeletePhone {
 	return func(ctx context.Context, req dto.DeletePhoneRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -151,7 +151,7 @@ func ValidateDeletePhone(repo repository.MySQLRepo) user.ValidateDeletePhone {
 	}
 }
 
-func ValidateAddAddress(repo repository.MySQLRepo) user.ValidateAddAddress {
+func ValidateAddAddress(repo repository.Repo) user.ValidateAddAddress {
 	return func(ctx context.Context, req dto.AddAddressRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -165,7 +165,7 @@ func ValidateAddAddress(repo repository.MySQLRepo) user.ValidateAddAddress {
 	}
 }
 
-func ValidateGetAddress(repo repository.MySQLRepo) user.ValidateGetAddress {
+func ValidateGetAddress(repo repository.Repo) user.ValidateGetAddress {
 	return func(ctx context.Context, req dto.GetAddressRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -174,7 +174,7 @@ func ValidateGetAddress(repo repository.MySQLRepo) user.ValidateGetAddress {
 	}
 }
 
-func ValidateGetAddresses(repo repository.MySQLRepo) user.ValidateGetAddresses {
+func ValidateGetAddresses(repo repository.Repo) user.ValidateGetAddresses {
 	return func(ctx context.Context, req dto.GetAddressesRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -182,7 +182,7 @@ func ValidateGetAddresses(repo repository.MySQLRepo) user.ValidateGetAddresses {
 	}
 }
 
-func ValidateDeleteAddress(repo repository.MySQLRepo) user.ValidateDeleteAddress {
+func ValidateDeleteAddress(repo repository.Repo) user.ValidateDeleteAddress {
 	return func(ctx context.Context, req dto.DeleteAddressRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),

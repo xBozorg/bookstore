@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	eo "github.com/XBozorg/bookstore/entity/order"
 	"github.com/XBozorg/bookstore/usecase/order"
@@ -133,7 +133,7 @@ func checkStatusForSTN(ctx context.Context, repo order.Repository, orderID uint)
 	}
 }
 
-func ValidateCreateEmptyOrder(repo repository.MySQLRepo) order.ValidateCreateEmptyOrder {
+func ValidateCreateEmptyOrder(repo repository.Repo) order.ValidateCreateEmptyOrder {
 	return func(ctx context.Context, req dto.CreateEmptyOrderRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -141,7 +141,7 @@ func ValidateCreateEmptyOrder(repo repository.MySQLRepo) order.ValidateCreateEmp
 	}
 }
 
-func ValidateCheckOpenOrder(repo repository.MySQLRepo) order.ValidateCheckOpenOrder {
+func ValidateCheckOpenOrder(repo repository.Repo) order.ValidateCheckOpenOrder {
 	return func(ctx context.Context, req dto.CheckOpenOrderRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -149,7 +149,7 @@ func ValidateCheckOpenOrder(repo repository.MySQLRepo) order.ValidateCheckOpenOr
 	}
 }
 
-func ValidateAddItem(repo repository.MySQLRepo) order.ValidateAddItem {
+func ValidateAddItem(repo repository.Repo) order.ValidateAddItem {
 	return func(ctx context.Context, req dto.AddItemRequest) error {
 
 		if errUserID := validation.ValidateStruct(&req,
@@ -170,7 +170,7 @@ func ValidateAddItem(repo repository.MySQLRepo) order.ValidateAddItem {
 	}
 }
 
-func ValidateIncreaseQuantity(repo repository.MySQLRepo) order.ValidateIncreaseQuantity {
+func ValidateIncreaseQuantity(repo repository.Repo) order.ValidateIncreaseQuantity {
 	return func(ctx context.Context, req dto.IncreaseQuantityRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
@@ -179,7 +179,7 @@ func ValidateIncreaseQuantity(repo repository.MySQLRepo) order.ValidateIncreaseQ
 	}
 }
 
-func ValidateDecreaseQuantity(repo repository.MySQLRepo) order.ValidateDecreaseQuantity {
+func ValidateDecreaseQuantity(repo repository.Repo) order.ValidateDecreaseQuantity {
 	return func(ctx context.Context, req dto.DecreaseQuantityRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
@@ -188,7 +188,7 @@ func ValidateDecreaseQuantity(repo repository.MySQLRepo) order.ValidateDecreaseQ
 	}
 }
 
-func ValidateGetOrderItems(repo repository.MySQLRepo) order.ValidateGetOrderItems {
+func ValidateGetOrderItems(repo repository.Repo) order.ValidateGetOrderItems {
 	return func(ctx context.Context, req dto.GetOrderItemsRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
@@ -196,7 +196,7 @@ func ValidateGetOrderItems(repo repository.MySQLRepo) order.ValidateGetOrderItem
 	}
 }
 
-func ValidateGetOrderPaymentInfo(repo repository.MySQLRepo) order.ValidateGetOrderPaymentInfo {
+func ValidateGetOrderPaymentInfo(repo repository.Repo) order.ValidateGetOrderPaymentInfo {
 	return func(ctx context.Context, req dto.GetOrderPaymentInfoRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo)), validation.By(doesOrderOpen(ctx, repo))),
@@ -204,7 +204,7 @@ func ValidateGetOrderPaymentInfo(repo repository.MySQLRepo) order.ValidateGetOrd
 	}
 }
 
-func ValidateRemoveItem(repo repository.MySQLRepo) order.ValidateRemoveItem {
+func ValidateRemoveItem(repo repository.Repo) order.ValidateRemoveItem {
 	return func(ctx context.Context, req dto.RemoveItemRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
@@ -213,7 +213,7 @@ func ValidateRemoveItem(repo repository.MySQLRepo) order.ValidateRemoveItem {
 	}
 }
 
-func ValidateCreatePromoCode(repo repository.MySQLRepo) order.ValidateCreatePromoCode {
+func ValidateCreatePromoCode(repo repository.Repo) order.ValidateCreatePromoCode {
 	return func(ctx context.Context, req dto.CreatePromoCodeRequest) error {
 
 		if errUserID := validation.ValidateStruct(&req,
@@ -236,7 +236,7 @@ func ValidateCreatePromoCode(repo repository.MySQLRepo) order.ValidateCreateProm
 	}
 }
 
-func ValidateDeletePromoCode(repo repository.MySQLRepo) order.ValidateDeletePromoCode {
+func ValidateDeletePromoCode(repo repository.Repo) order.ValidateDeletePromoCode {
 	return func(ctx context.Context, req dto.DeletePromoCodeRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.PromoID, validation.Required, validation.By(doesPromoExist(ctx, repo))),
@@ -244,7 +244,7 @@ func ValidateDeletePromoCode(repo repository.MySQLRepo) order.ValidateDeleteProm
 	}
 }
 
-func ValidateSetOrderStatus(repo repository.MySQLRepo) order.ValidateSetOrderStatus {
+func ValidateSetOrderStatus(repo repository.Repo) order.ValidateSetOrderStatus {
 	return func(ctx context.Context, req dto.SetOrderStatusRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
@@ -253,7 +253,7 @@ func ValidateSetOrderStatus(repo repository.MySQLRepo) order.ValidateSetOrderSta
 	}
 }
 
-func ValidateSetOrderSTN(repo repository.MySQLRepo) order.ValidateSetOrderSTN {
+func ValidateSetOrderSTN(repo repository.Repo) order.ValidateSetOrderSTN {
 	return func(ctx context.Context, req dto.SetOrderSTNRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
@@ -262,7 +262,7 @@ func ValidateSetOrderSTN(repo repository.MySQLRepo) order.ValidateSetOrderSTN {
 	}
 }
 
-func ValidateSetOrderPromo(repo repository.MySQLRepo) order.ValidateSetOrderPromo {
+func ValidateSetOrderPromo(repo repository.Repo) order.ValidateSetOrderPromo {
 	return func(ctx context.Context, req dto.SetOrderPromoRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -272,7 +272,7 @@ func ValidateSetOrderPromo(repo repository.MySQLRepo) order.ValidateSetOrderProm
 	}
 }
 
-func ValidateRemoveOrderPromo(repo repository.MySQLRepo) order.ValidateRemoveOrderPromo {
+func ValidateRemoveOrderPromo(repo repository.Repo) order.ValidateRemoveOrderPromo {
 	return func(ctx context.Context, req dto.RemoveOrderPromoRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
@@ -280,7 +280,7 @@ func ValidateRemoveOrderPromo(repo repository.MySQLRepo) order.ValidateRemoveOrd
 	}
 }
 
-func ValidateDeleteOrder(repo repository.MySQLRepo) order.ValidateDeleteOrder {
+func ValidateDeleteOrder(repo repository.Repo) order.ValidateDeleteOrder {
 	return func(ctx context.Context, req dto.DeleteOrderRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
@@ -288,7 +288,7 @@ func ValidateDeleteOrder(repo repository.MySQLRepo) order.ValidateDeleteOrder {
 	}
 }
 
-func ValidateGetAllOrdersByStatus(repo repository.MySQLRepo) order.ValidateGetAllOrdersByStatus {
+func ValidateGetAllOrdersByStatus(repo repository.Repo) order.ValidateGetAllOrdersByStatus {
 	return func(ctx context.Context, req dto.GetAllOrdersByStatusRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, repo))),
@@ -296,7 +296,7 @@ func ValidateGetAllOrdersByStatus(repo repository.MySQLRepo) order.ValidateGetAl
 	}
 }
 
-func ValidateGetUserOrders(repo repository.MySQLRepo) order.ValidateGetUserOrders {
+func ValidateGetUserOrders(repo repository.Repo) order.ValidateGetUserOrders {
 	return func(ctx context.Context, req dto.GetUserOrdersRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -304,7 +304,7 @@ func ValidateGetUserOrders(repo repository.MySQLRepo) order.ValidateGetUserOrder
 	}
 }
 
-func ValidateGetUserOrdersByStatus(repo repository.MySQLRepo) order.ValidateGetUserOrdersByStatus {
+func ValidateGetUserOrdersByStatus(repo repository.Repo) order.ValidateGetUserOrdersByStatus {
 	return func(ctx context.Context, req dto.GetUserOrdersByStatusRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -313,7 +313,7 @@ func ValidateGetUserOrdersByStatus(repo repository.MySQLRepo) order.ValidateGetU
 	}
 }
 
-func ValidateGetDateOrders(repo repository.MySQLRepo) order.ValidateGetDateOrders {
+func ValidateGetDateOrders(repo repository.Repo) order.ValidateGetDateOrders {
 	return func(ctx context.Context, req dto.GetDateOrdersRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Date, validation.Required, validation.By(isValidDate(ctx, repo))),
@@ -321,7 +321,7 @@ func ValidateGetDateOrders(repo repository.MySQLRepo) order.ValidateGetDateOrder
 	}
 }
 
-func ValidateGetDateOrdersByStatus(repo repository.MySQLRepo) order.ValidateGetDateOrdersByStatus {
+func ValidateGetDateOrdersByStatus(repo repository.Repo) order.ValidateGetDateOrdersByStatus {
 	return func(ctx context.Context, req dto.GetDateOrdersByStatusRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Date, validation.Required, validation.By(isValidDate(ctx, repo))),
@@ -330,7 +330,7 @@ func ValidateGetDateOrdersByStatus(repo repository.MySQLRepo) order.ValidateGetD
 	}
 }
 
-func ValidateGetUserPromos(repo repository.MySQLRepo) order.ValidateGetUserPromos {
+func ValidateGetUserPromos(repo repository.Repo) order.ValidateGetUserPromos {
 	return func(ctx context.Context, req dto.GetUserPromosRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
@@ -338,7 +338,7 @@ func ValidateGetUserPromos(repo repository.MySQLRepo) order.ValidateGetUserPromo
 	}
 }
 
-func ValidateGetPromoByOrder(repo repository.MySQLRepo) order.ValidateGetPromoByOrder {
+func ValidateGetPromoByOrder(repo repository.Repo) order.ValidateGetPromoByOrder {
 	return func(ctx context.Context, req dto.GetPromoByOrderRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
@@ -346,7 +346,7 @@ func ValidateGetPromoByOrder(repo repository.MySQLRepo) order.ValidateGetPromoBy
 	}
 }
 
-func ValidateSetOrderPhone(repo repository.MySQLRepo) order.ValidateSetOrderPhone {
+func ValidateSetOrderPhone(repo repository.Repo) order.ValidateSetOrderPhone {
 	return func(ctx context.Context, req dto.SetOrderPhoneRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
@@ -355,7 +355,7 @@ func ValidateSetOrderPhone(repo repository.MySQLRepo) order.ValidateSetOrderPhon
 	}
 }
 
-func ValidateSetOrderAddress(repo repository.MySQLRepo) order.ValidateSetOrderAddress {
+func ValidateSetOrderAddress(repo repository.Repo) order.ValidateSetOrderAddress {
 	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
@@ -364,7 +364,7 @@ func ValidateSetOrderAddress(repo repository.MySQLRepo) order.ValidateSetOrderAd
 	}
 }
 
-func ValidateZarinpalPayment(repo repository.MySQLRepo) order.ValidateSetOrderAddress {
+func ValidateZarinpalPayment(repo repository.Repo) order.ValidateSetOrderAddress {
 	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),

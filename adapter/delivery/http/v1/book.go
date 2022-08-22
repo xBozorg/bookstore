@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"strings"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/book"
 	"github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 )
 
-func AddAuthor(repo repository.MySQLRepo, validator book.ValidateAddAuthor) echo.HandlerFunc {
+func AddAuthor(repo repository.Repo, validator book.ValidateAddAuthor) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddAuthorRequest{}
 
@@ -37,7 +37,7 @@ func AddAuthor(repo repository.MySQLRepo, validator book.ValidateAddAuthor) echo
 	}
 }
 
-func GetAuthor(repo repository.MySQLRepo, validator book.ValidateGetAuthor) echo.HandlerFunc {
+func GetAuthor(repo repository.Repo, validator book.ValidateGetAuthor) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAuthorRequest{}
 
@@ -63,7 +63,7 @@ func GetAuthor(repo repository.MySQLRepo, validator book.ValidateGetAuthor) echo
 	}
 }
 
-func GetAuthors(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetAuthors(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAuthorsRequest{}
 
@@ -75,7 +75,7 @@ func GetAuthors(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func DeleteAuthor(repo repository.MySQLRepo, validator book.ValidateDeleteAuthor) echo.HandlerFunc {
+func DeleteAuthor(repo repository.Repo, validator book.ValidateDeleteAuthor) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteAuthorRequest{}
 
@@ -101,7 +101,7 @@ func DeleteAuthor(repo repository.MySQLRepo, validator book.ValidateDeleteAuthor
 	}
 }
 
-func AddPublisher(repo repository.MySQLRepo, validator book.ValidateAddPublisher) echo.HandlerFunc {
+func AddPublisher(repo repository.Repo, validator book.ValidateAddPublisher) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddPublisherRequest{}
 
@@ -126,7 +126,7 @@ func AddPublisher(repo repository.MySQLRepo, validator book.ValidateAddPublisher
 	}
 }
 
-func GetPublisher(repo repository.MySQLRepo, validator book.ValidateGetPublisher) echo.HandlerFunc {
+func GetPublisher(repo repository.Repo, validator book.ValidateGetPublisher) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPublisherRequest{}
 
@@ -152,7 +152,7 @@ func GetPublisher(repo repository.MySQLRepo, validator book.ValidateGetPublisher
 	}
 }
 
-func GetPublishers(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetPublishers(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPublishersRequest{}
 
@@ -164,7 +164,7 @@ func GetPublishers(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func DeletePublisher(repo repository.MySQLRepo, validator book.ValidateDeletePublisher) echo.HandlerFunc {
+func DeletePublisher(repo repository.Repo, validator book.ValidateDeletePublisher) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePublisherRequest{}
 
@@ -190,7 +190,7 @@ func DeletePublisher(repo repository.MySQLRepo, validator book.ValidateDeletePub
 	}
 }
 
-func AddTopic(repo repository.MySQLRepo, validator book.ValidateAddTopic) echo.HandlerFunc {
+func AddTopic(repo repository.Repo, validator book.ValidateAddTopic) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddTopicRequest{}
 
@@ -215,7 +215,7 @@ func AddTopic(repo repository.MySQLRepo, validator book.ValidateAddTopic) echo.H
 	}
 }
 
-func GetTopic(repo repository.MySQLRepo, validator book.ValidateGetTopic) echo.HandlerFunc {
+func GetTopic(repo repository.Repo, validator book.ValidateGetTopic) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetTopicRequest{}
 
@@ -241,7 +241,7 @@ func GetTopic(repo repository.MySQLRepo, validator book.ValidateGetTopic) echo.H
 	}
 }
 
-func GetTopics(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetTopics(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetTopicsRequest{}
 
@@ -253,7 +253,7 @@ func GetTopics(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func DeleteTopic(repo repository.MySQLRepo, validator book.ValidateDeleteTopic) echo.HandlerFunc {
+func DeleteTopic(repo repository.Repo, validator book.ValidateDeleteTopic) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteTopicRequest{}
 
@@ -279,7 +279,7 @@ func DeleteTopic(repo repository.MySQLRepo, validator book.ValidateDeleteTopic) 
 	}
 }
 
-func AddLanguage(repo repository.MySQLRepo, validator book.ValidateAddLanguage) echo.HandlerFunc {
+func AddLanguage(repo repository.Repo, validator book.ValidateAddLanguage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddLanguageRequest{}
 
@@ -304,7 +304,7 @@ func AddLanguage(repo repository.MySQLRepo, validator book.ValidateAddLanguage) 
 	}
 }
 
-func GetLanguage(repo repository.MySQLRepo, validator book.ValidateGetLanguage) echo.HandlerFunc {
+func GetLanguage(repo repository.Repo, validator book.ValidateGetLanguage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetLanguageRequest{}
 
@@ -330,7 +330,7 @@ func GetLanguage(repo repository.MySQLRepo, validator book.ValidateGetLanguage) 
 	}
 }
 
-func GetLanguages(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetLanguages(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetLanguagesRequest{}
 
@@ -342,7 +342,7 @@ func GetLanguages(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func DeleteLanguage(repo repository.MySQLRepo, validator book.ValidateDeleteLanguage) echo.HandlerFunc {
+func DeleteLanguage(repo repository.Repo, validator book.ValidateDeleteLanguage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteLanguageRequest{}
 
@@ -368,7 +368,7 @@ func DeleteLanguage(repo repository.MySQLRepo, validator book.ValidateDeleteLang
 	}
 }
 
-func AddBook(repo repository.MySQLRepo, validator book.ValidateAddBook) echo.HandlerFunc {
+func AddBook(repo repository.Repo, validator book.ValidateAddBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddBookRequest{}
 
@@ -393,7 +393,7 @@ func AddBook(repo repository.MySQLRepo, validator book.ValidateAddBook) echo.Han
 	}
 }
 
-func GetBook(repo repository.MySQLRepo, validator book.ValidateGetBook) echo.HandlerFunc {
+func GetBook(repo repository.Repo, validator book.ValidateGetBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetBookRequest{}
 
@@ -419,7 +419,7 @@ func GetBook(repo repository.MySQLRepo, validator book.ValidateGetBook) echo.Han
 	}
 }
 
-func SetBookDiscount(repo repository.MySQLRepo, validator book.ValidateSetBookDiscount) echo.HandlerFunc {
+func SetBookDiscount(repo repository.Repo, validator book.ValidateSetBookDiscount) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetBookDiscountRequest{}
 
@@ -449,7 +449,7 @@ func SetBookDiscount(repo repository.MySQLRepo, validator book.ValidateSetBookDi
 	}
 }
 
-func EditBook(repo repository.MySQLRepo, validator book.ValidateEditBook) echo.HandlerFunc {
+func EditBook(repo repository.Repo, validator book.ValidateEditBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.EditBookRequest{}
 
@@ -479,7 +479,7 @@ func EditBook(repo repository.MySQLRepo, validator book.ValidateEditBook) echo.H
 	}
 }
 
-func GetAllBooks(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetAllBooks(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllBooksRequest{}
 
@@ -491,7 +491,7 @@ func GetAllBooks(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func GetAuthorBooks(repo repository.MySQLRepo, validator book.ValidateGetAuthorBooks) echo.HandlerFunc {
+func GetAuthorBooks(repo repository.Repo, validator book.ValidateGetAuthorBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAuthorBooksRequest{}
 
@@ -517,7 +517,7 @@ func GetAuthorBooks(repo repository.MySQLRepo, validator book.ValidateGetAuthorB
 	}
 }
 
-func GetPublisherBooks(repo repository.MySQLRepo, validator book.ValidateGetPublisherBooks) echo.HandlerFunc {
+func GetPublisherBooks(repo repository.Repo, validator book.ValidateGetPublisherBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPublisherBooksRequest{}
 
@@ -543,7 +543,7 @@ func GetPublisherBooks(repo repository.MySQLRepo, validator book.ValidateGetPubl
 	}
 }
 
-func GetTopicBooks(repo repository.MySQLRepo, validator book.ValidateGetTopicBooks) echo.HandlerFunc {
+func GetTopicBooks(repo repository.Repo, validator book.ValidateGetTopicBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetTopicBooksRequest{}
 
@@ -569,7 +569,7 @@ func GetTopicBooks(repo repository.MySQLRepo, validator book.ValidateGetTopicBoo
 	}
 }
 
-func GetLangBooks(repo repository.MySQLRepo, validator book.ValidateGetLangBooks) echo.HandlerFunc {
+func GetLangBooks(repo repository.Repo, validator book.ValidateGetLangBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetLangBooksRequest{}
 
@@ -595,7 +595,7 @@ func GetLangBooks(repo repository.MySQLRepo, validator book.ValidateGetLangBooks
 	}
 }
 
-func DeleteBook(repo repository.MySQLRepo, validator book.ValidateDeleteBook) echo.HandlerFunc {
+func DeleteBook(repo repository.Repo, validator book.ValidateDeleteBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteBookRequest{}
 
@@ -621,7 +621,7 @@ func DeleteBook(repo repository.MySQLRepo, validator book.ValidateDeleteBook) ec
 	}
 }
 
-func GetUserDigitalBooks(repo repository.MySQLRepo, validator book.ValidateGetUserDigitalBooks) echo.HandlerFunc {
+func GetUserDigitalBooks(repo repository.Repo, validator book.ValidateGetUserDigitalBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserDigitalBooksRequest{}
 
@@ -651,7 +651,7 @@ func GetUserDigitalBooks(repo repository.MySQLRepo, validator book.ValidateGetUs
 	}
 }
 
-func DownloadBook(repo repository.MySQLRepo, validator book.ValidateDownloadBook) echo.HandlerFunc {
+func DownloadBook(repo repository.Repo, validator book.ValidateDownloadBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DownloadBookRequest{}
 

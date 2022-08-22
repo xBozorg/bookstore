@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/order"
 	"github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 )
 
-func AddItem(repo repository.MySQLRepo, validator order.ValidateAddItem) echo.HandlerFunc {
+func AddItem(repo repository.Repo, validator order.ValidateAddItem) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddItemRequest{}
 
@@ -59,7 +59,7 @@ func AddItem(repo repository.MySQLRepo, validator order.ValidateAddItem) echo.Ha
 	}
 }
 
-func IncreaseQuantity(repo repository.MySQLRepo, validator order.ValidateIncreaseQuantity) echo.HandlerFunc {
+func IncreaseQuantity(repo repository.Repo, validator order.ValidateIncreaseQuantity) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.IncreaseQuantityRequest{}
 
@@ -106,7 +106,7 @@ func IncreaseQuantity(repo repository.MySQLRepo, validator order.ValidateIncreas
 	}
 }
 
-func DecreaseQuantity(repo repository.MySQLRepo, validator order.ValidateDecreaseQuantity) echo.HandlerFunc {
+func DecreaseQuantity(repo repository.Repo, validator order.ValidateDecreaseQuantity) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DecreaseQuantityRequest{}
 
@@ -153,7 +153,7 @@ func DecreaseQuantity(repo repository.MySQLRepo, validator order.ValidateDecreas
 	}
 }
 
-func RemoveItem(repo repository.MySQLRepo, validator order.ValidateRemoveItem) echo.HandlerFunc {
+func RemoveItem(repo repository.Repo, validator order.ValidateRemoveItem) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.RemoveItemRequest{}
 
@@ -200,7 +200,7 @@ func RemoveItem(repo repository.MySQLRepo, validator order.ValidateRemoveItem) e
 	}
 }
 
-func GetOrderItems(repo repository.MySQLRepo, validator order.ValidateGetOrderItems) echo.HandlerFunc {
+func GetOrderItems(repo repository.Repo, validator order.ValidateGetOrderItems) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetOrderItemsRequest{}
 
@@ -237,7 +237,7 @@ func GetOrderItems(repo repository.MySQLRepo, validator order.ValidateGetOrderIt
 	}
 }
 
-func CreatePromoCode(repo repository.MySQLRepo, validator order.ValidateCreatePromoCode) echo.HandlerFunc {
+func CreatePromoCode(repo repository.Repo, validator order.ValidateCreatePromoCode) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.CreatePromoCodeRequest{}
 
@@ -275,7 +275,7 @@ func CreatePromoCode(repo repository.MySQLRepo, validator order.ValidateCreatePr
 	}
 }
 
-func DeletePromoCode(repo repository.MySQLRepo, validator order.ValidateDeletePromoCode) echo.HandlerFunc {
+func DeletePromoCode(repo repository.Repo, validator order.ValidateDeletePromoCode) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePromoCodeRequest{}
 
@@ -303,7 +303,7 @@ func DeletePromoCode(repo repository.MySQLRepo, validator order.ValidateDeletePr
 	}
 }
 
-func SetOrderStatus(repo repository.MySQLRepo, validator order.ValidateSetOrderStatus) echo.HandlerFunc {
+func SetOrderStatus(repo repository.Repo, validator order.ValidateSetOrderStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderStatusRequest{}
 
@@ -339,7 +339,7 @@ func SetOrderStatus(repo repository.MySQLRepo, validator order.ValidateSetOrderS
 	}
 }
 
-func SetOrderSTN(repo repository.MySQLRepo, validator order.ValidateSetOrderSTN) echo.HandlerFunc {
+func SetOrderSTN(repo repository.Repo, validator order.ValidateSetOrderSTN) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderSTNRequest{}
 
@@ -375,7 +375,7 @@ func SetOrderSTN(repo repository.MySQLRepo, validator order.ValidateSetOrderSTN)
 	}
 }
 
-func SetOrderPromo(repo repository.MySQLRepo, validator order.ValidateSetOrderPromo) echo.HandlerFunc {
+func SetOrderPromo(repo repository.Repo, validator order.ValidateSetOrderPromo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderPromoRequest{}
 
@@ -426,7 +426,7 @@ func SetOrderPromo(repo repository.MySQLRepo, validator order.ValidateSetOrderPr
 	}
 }
 
-func RemoveOrderPromo(repo repository.MySQLRepo, validator order.ValidateRemoveOrderPromo) echo.HandlerFunc {
+func RemoveOrderPromo(repo repository.Repo, validator order.ValidateRemoveOrderPromo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.RemoveOrderPromoRequest{}
 
@@ -463,7 +463,7 @@ func RemoveOrderPromo(repo repository.MySQLRepo, validator order.ValidateRemoveO
 	}
 }
 
-func DeleteOrder(repo repository.MySQLRepo, validator order.ValidateDeleteOrder) echo.HandlerFunc {
+func DeleteOrder(repo repository.Repo, validator order.ValidateDeleteOrder) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteOrderRequest{}
 
@@ -500,7 +500,7 @@ func DeleteOrder(repo repository.MySQLRepo, validator order.ValidateDeleteOrder)
 	}
 }
 
-func GetAllOrders(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetAllOrders(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllOrdersRequest{}
 
@@ -518,7 +518,7 @@ func GetAllOrders(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func GetAllOrdersByStatus(repo repository.MySQLRepo, validator order.ValidateGetAllOrdersByStatus) echo.HandlerFunc {
+func GetAllOrdersByStatus(repo repository.Repo, validator order.ValidateGetAllOrdersByStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllOrdersByStatusRequest{}
 
@@ -551,7 +551,7 @@ func GetAllOrdersByStatus(repo repository.MySQLRepo, validator order.ValidateGet
 	}
 }
 
-func GetUserOrders(repo repository.MySQLRepo, validator order.ValidateGetUserOrders) echo.HandlerFunc {
+func GetUserOrders(repo repository.Repo, validator order.ValidateGetUserOrders) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserOrdersRequest{}
 
@@ -581,7 +581,7 @@ func GetUserOrders(repo repository.MySQLRepo, validator order.ValidateGetUserOrd
 	}
 }
 
-func GetUserOrdersByStatus(repo repository.MySQLRepo, validator order.ValidateGetUserOrdersByStatus) echo.HandlerFunc {
+func GetUserOrdersByStatus(repo repository.Repo, validator order.ValidateGetUserOrdersByStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserOrdersByStatusRequest{}
 
@@ -621,7 +621,7 @@ func GetUserOrdersByStatus(repo repository.MySQLRepo, validator order.ValidateGe
 	}
 }
 
-func GetDateOrders(repo repository.MySQLRepo, validator order.ValidateGetDateOrders) echo.HandlerFunc {
+func GetDateOrders(repo repository.Repo, validator order.ValidateGetDateOrders) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetDateOrdersRequest{}
 
@@ -652,7 +652,7 @@ func GetDateOrders(repo repository.MySQLRepo, validator order.ValidateGetDateOrd
 	}
 }
 
-func GetDateOrdersByStatus(repo repository.MySQLRepo, validator order.ValidateGetDateOrdersByStatus) echo.HandlerFunc {
+func GetDateOrdersByStatus(repo repository.Repo, validator order.ValidateGetDateOrdersByStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetDateOrdersByStatusRequest{}
 
@@ -693,7 +693,7 @@ func GetDateOrdersByStatus(repo repository.MySQLRepo, validator order.ValidateGe
 	}
 }
 
-func GetAllPromos(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetAllPromos(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllPromosRequest{}
 
@@ -711,7 +711,7 @@ func GetAllPromos(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func GetPromoByOrder(repo repository.MySQLRepo, validator order.ValidateGetPromoByOrder) echo.HandlerFunc {
+func GetPromoByOrder(repo repository.Repo, validator order.ValidateGetPromoByOrder) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPromoByOrderRequest{}
 
@@ -744,7 +744,7 @@ func GetPromoByOrder(repo repository.MySQLRepo, validator order.ValidateGetPromo
 	}
 }
 
-func GetUserPromos(repo repository.MySQLRepo, validator order.ValidateGetUserPromos) echo.HandlerFunc {
+func GetUserPromos(repo repository.Repo, validator order.ValidateGetUserPromos) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserPromosRequest{}
 
@@ -774,7 +774,7 @@ func GetUserPromos(repo repository.MySQLRepo, validator order.ValidateGetUserPro
 	}
 }
 
-func SetOrderPhone(repo repository.MySQLRepo, validator order.ValidateSetOrderPhone) echo.HandlerFunc {
+func SetOrderPhone(repo repository.Repo, validator order.ValidateSetOrderPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderPhoneRequest{}
 
@@ -810,7 +810,7 @@ func SetOrderPhone(repo repository.MySQLRepo, validator order.ValidateSetOrderPh
 	}
 }
 
-func SetOrderAddress(repo repository.MySQLRepo, validator order.ValidateSetOrderAddress) echo.HandlerFunc {
+func SetOrderAddress(repo repository.Repo, validator order.ValidateSetOrderAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderAddressRequest{}
 

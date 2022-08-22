@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/admin"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -27,7 +27,7 @@ func doesAdminExist(ctx context.Context, repo admin.ValidatorRepo) validation.Ru
 	}
 }
 
-func ValidateGetAdmin(repo repository.MySQLRepo) admin.ValidateGetAdmin {
+func ValidateGetAdmin(repo repository.Repo) admin.ValidateGetAdmin {
 	return func(ctx context.Context, req dto.GetAdminRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.AdminId, is.UUIDv4, validation.By(doesAdminExist(ctx, repo))),
@@ -35,7 +35,7 @@ func ValidateGetAdmin(repo repository.MySQLRepo) admin.ValidateGetAdmin {
 	}
 }
 
-func ValidateLoginAdmin(repo repository.MySQLRepo) admin.ValidateLoginAdmin {
+func ValidateLoginAdmin(repo repository.Repo) admin.ValidateLoginAdmin {
 	return func(ctx context.Context, req dto.LoginAdminRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Email, validation.Required, is.Email),

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/XBozorg/bookstore/adapter/auth"
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/user"
@@ -51,7 +51,7 @@ func UserAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func CreateUser(repo repository.MySQLRepo, validator user.ValidateCreateUser) echo.HandlerFunc {
+func CreateUser(repo repository.Repo, validator user.ValidateCreateUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		createUserReq := dto.CreateUserRequest{}
@@ -90,7 +90,7 @@ func CreateUser(repo repository.MySQLRepo, validator user.ValidateCreateUser) ec
 	}
 }
 
-func LoginUser(repo repository.MySQLRepo, validator user.ValidateLoginUser) echo.HandlerFunc {
+func LoginUser(repo repository.Repo, validator user.ValidateLoginUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.LoginUserRequest{}
@@ -128,7 +128,7 @@ func UserLoginForm() echo.HandlerFunc { // simple handler for redirect unauthent
 	}
 }
 
-func GetUser(repo repository.MySQLRepo, validator user.ValidateGetUser) echo.HandlerFunc {
+func GetUser(repo repository.Repo, validator user.ValidateGetUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetUserRequest{}
@@ -151,7 +151,7 @@ func GetUser(repo repository.MySQLRepo, validator user.ValidateGetUser) echo.Han
 	}
 }
 
-func GetUsers(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetUsers(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUsersRequest{}
 
@@ -164,7 +164,7 @@ func GetUsers(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func DeleteUser(repo repository.MySQLRepo, validator user.ValidateDeleteUser) echo.HandlerFunc {
+func DeleteUser(repo repository.Repo, validator user.ValidateDeleteUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.DeleteUserRequest{}
@@ -187,7 +187,7 @@ func DeleteUser(repo repository.MySQLRepo, validator user.ValidateDeleteUser) ec
 	}
 }
 
-func ChangePassword(repo repository.MySQLRepo, validator user.ValidateChangePass) echo.HandlerFunc {
+func ChangePassword(repo repository.Repo, validator user.ValidateChangePass) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.ChangePassRequest{}
 		if err := c.Bind(&req); err != nil {
@@ -213,7 +213,7 @@ func ChangePassword(repo repository.MySQLRepo, validator user.ValidateChangePass
 	}
 }
 
-func ChangeUsername(repo repository.MySQLRepo, validator user.ValidateChangeUsername) echo.HandlerFunc {
+func ChangeUsername(repo repository.Repo, validator user.ValidateChangeUsername) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.ChangeUsernameRequest{}
 		if err := c.Bind(&req); err != nil {
@@ -238,7 +238,7 @@ func ChangeUsername(repo repository.MySQLRepo, validator user.ValidateChangeUser
 	}
 }
 
-func AddPhone(repo repository.MySQLRepo, validator user.ValidateAddPhone) echo.HandlerFunc {
+func AddPhone(repo repository.Repo, validator user.ValidateAddPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddPhoneRequest{}
 		if err := c.Bind(&req); err != nil {
@@ -265,7 +265,7 @@ func AddPhone(repo repository.MySQLRepo, validator user.ValidateAddPhone) echo.H
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetPhone(repo repository.MySQLRepo, validator user.ValidateGetPhone) echo.HandlerFunc {
+func GetPhone(repo repository.Repo, validator user.ValidateGetPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhoneRequest{}
 		pid, err := strconv.ParseUint(c.Param("phoneID"), 10, 64)
@@ -291,7 +291,7 @@ func GetPhone(repo repository.MySQLRepo, validator user.ValidateGetPhone) echo.H
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetPhones(repo repository.MySQLRepo, validator user.ValidateGetPhones) echo.HandlerFunc {
+func GetPhones(repo repository.Repo, validator user.ValidateGetPhones) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhonesRequest{}
 		userCookie, _ := c.Cookie("ID")
@@ -309,7 +309,7 @@ func GetPhones(repo repository.MySQLRepo, validator user.ValidateGetPhones) echo
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func DeletePhone(repo repository.MySQLRepo, validator user.ValidateDeletePhone) echo.HandlerFunc {
+func DeletePhone(repo repository.Repo, validator user.ValidateDeletePhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePhoneRequest{}
 		pid, err := strconv.ParseUint(c.Param("phoneID"), 10, 64)
@@ -336,7 +336,7 @@ func DeletePhone(repo repository.MySQLRepo, validator user.ValidateDeletePhone) 
 	}
 }
 
-func AddAddress(repo repository.MySQLRepo, validator user.ValidateAddAddress) echo.HandlerFunc {
+func AddAddress(repo repository.Repo, validator user.ValidateAddAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddAddressRequest{}
 
@@ -361,7 +361,7 @@ func AddAddress(repo repository.MySQLRepo, validator user.ValidateAddAddress) ec
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetAddress(repo repository.MySQLRepo, validator user.ValidateGetAddress) echo.HandlerFunc {
+func GetAddress(repo repository.Repo, validator user.ValidateGetAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetAddressRequest{}
@@ -388,7 +388,7 @@ func GetAddress(repo repository.MySQLRepo, validator user.ValidateGetAddress) ec
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetAddresses(repo repository.MySQLRepo, validator user.ValidateGetAddresses) echo.HandlerFunc {
+func GetAddresses(repo repository.Repo, validator user.ValidateGetAddresses) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAddressesRequest{}
 		userCookie, _ := c.Cookie("ID")
@@ -405,7 +405,7 @@ func GetAddresses(repo repository.MySQLRepo, validator user.ValidateGetAddresses
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func DeleteAddress(repo repository.MySQLRepo, validator user.ValidateDeleteAddress) echo.HandlerFunc {
+func DeleteAddress(repo repository.Repo, validator user.ValidateDeleteAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteAddressRequest{}
 		aid, err := strconv.ParseUint(c.Param("addressID"), 10, 64)

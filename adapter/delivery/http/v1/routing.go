@@ -4,14 +4,14 @@ import (
 	"github.com/XBozorg/bookstore/adapter/auth"
 	payment "github.com/XBozorg/bookstore/adapter/payment/zarinpal"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func Routing(repo repository.MySQLRepo) *echo.Echo {
+func Routing(repo repository.Repo) *echo.Echo {
 	e := echo.New()
 
 	userGroup := e.Group("/v1/user")

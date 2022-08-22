@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (m MySQLRepo) CreateUser(ctx context.Context, u user.User) (user.User, error) {
+func (repo Repo) CreateUser(ctx context.Context, u user.User) (user.User, error) {
 
 	hashedPassword, err := HashPassword(u.Password)
 	if err != nil {
@@ -20,7 +20,7 @@ func (m MySQLRepo) CreateUser(ctx context.Context, u user.User) (user.User, erro
 
 	userID := uuid.NewV4().String()
 
-	_, err = m.db.ExecContext(
+	_, err = repo.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO user (id, email, password, username, firstname, lastname, regdate) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		userID,
@@ -42,9 +42,9 @@ func (m MySQLRepo) CreateUser(ctx context.Context, u user.User) (user.User, erro
 	return u, nil
 }
 
-func (m MySQLRepo) LoginUser(ctx context.Context, username, email, password string) (user.User, error) {
+func (repo Repo) LoginUser(ctx context.Context, username, email, password string) (user.User, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id, email, password, username, firstname, lastname FROM user WHERE username = ? OR email = ?",
 		username,
@@ -74,9 +74,9 @@ func (m MySQLRepo) LoginUser(ctx context.Context, username, email, password stri
 	return user.User{}, errors.New("password does not match")
 }
 
-func (m MySQLRepo) GetUser(ctx context.Context, userID string) (user.User, error) {
+func (repo Repo) GetUser(ctx context.Context, userID string) (user.User, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id, email, username, firstname, lastname FROM user WHERE id = ?",
 		userID,
@@ -99,9 +99,9 @@ func (m MySQLRepo) GetUser(ctx context.Context, userID string) (user.User, error
 	return u, nil
 }
 
-func (m MySQLRepo) GetUsers(ctx context.Context) ([]user.User, error) {
+func (repo Repo) GetUsers(ctx context.Context) ([]user.User, error) {
 
-	result, err := m.db.QueryContext(
+	result, err := repo.MySQL.QueryContext(
 		ctx,
 		"SELECT id, email, username, firstname, lastname FROM user",
 	)
@@ -132,11 +132,11 @@ func (m MySQLRepo) GetUsers(ctx context.Context) ([]user.User, error) {
 	return users, nil
 }
 
-func (m MySQLRepo) ChangePassword(ctx context.Context, userID, oldPass, newPass string) error {
+func (repo Repo) ChangePassword(ctx context.Context, userID, oldPass, newPass string) error {
 
 	var oldInDB string
 
-	oldQ := m.db.QueryRowContext(
+	oldQ := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT password FROM user WHERE id = ?",
 		userID,
@@ -150,7 +150,7 @@ func (m MySQLRepo) ChangePassword(ctx context.Context, userID, oldPass, newPass 
 		if err != nil {
 			return err
 		}
-		_, err = m.db.ExecContext(ctx, "UPDATE user SET password = ? WHERE id = ?", new, userID)
+		_, err = repo.MySQL.ExecContext(ctx, "UPDATE user SET password = ? WHERE id = ?", new, userID)
 		if err != nil {
 			return err
 		}
@@ -161,9 +161,9 @@ func (m MySQLRepo) ChangePassword(ctx context.Context, userID, oldPass, newPass 
 	return errors.New("password does not match")
 }
 
-func (m MySQLRepo) ChangeUsername(ctx context.Context, userID, username string) error {
+func (repo Repo) ChangeUsername(ctx context.Context, userID, username string) error {
 
-	_, err := m.db.ExecContext(
+	_, err := repo.MySQL.ExecContext(
 		ctx,
 		"UPDATE user SET username = ? WHERE id = ?",
 		username,
@@ -177,9 +177,9 @@ func (m MySQLRepo) ChangeUsername(ctx context.Context, userID, username string) 
 	return nil
 }
 
-func (m MySQLRepo) AddPhone(ctx context.Context, userID string, phone user.PhoneNumber) (user.PhoneNumber, error) {
+func (repo Repo) AddPhone(ctx context.Context, userID string, phone user.PhoneNumber) (user.PhoneNumber, error) {
 
-	noPhonesQuery := m.db.QueryRowContext(
+	noPhonesQuery := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT COUNT(*) FROM phone WHERE userID = ?",
 		userID,
@@ -194,7 +194,7 @@ func (m MySQLRepo) AddPhone(ctx context.Context, userID string, phone user.Phone
 	if noPhones >= 3 {
 		return user.PhoneNumber{}, errors.New("max number of phones reached (3/3)")
 	}
-	_, err = m.db.ExecContext(
+	_, err = repo.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO phone (code, phonenumber, userID) VALUES (?, ?, ?)",
 		phone.Code,
@@ -209,9 +209,9 @@ func (m MySQLRepo) AddPhone(ctx context.Context, userID string, phone user.Phone
 	return phone, nil
 }
 
-func (m MySQLRepo) GetPhone(ctx context.Context, userID string, phoneID uint) (user.PhoneNumber, error) {
+func (repo Repo) GetPhone(ctx context.Context, userID string, phoneID uint) (user.PhoneNumber, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT code, phoneNumber FROM phone WHERE ( userID = ? AND id = ?)",
 		userID,
@@ -233,9 +233,9 @@ func (m MySQLRepo) GetPhone(ctx context.Context, userID string, phoneID uint) (u
 
 	return p, nil
 }
-func (m MySQLRepo) GetPhones(ctx context.Context, userID string) ([]user.PhoneNumber, error) {
+func (repo Repo) GetPhones(ctx context.Context, userID string) ([]user.PhoneNumber, error) {
 
-	result, err := m.db.QueryContext(
+	result, err := repo.MySQL.QueryContext(
 		ctx,
 		"SELECT id, code, phonenumber FROM phone WHERE userID = ?",
 		userID,
@@ -263,9 +263,9 @@ func (m MySQLRepo) GetPhones(ctx context.Context, userID string) ([]user.PhoneNu
 	return phones, nil
 }
 
-func (m MySQLRepo) DeletePhone(ctx context.Context, userID string, phoneID uint) error {
+func (repo Repo) DeletePhone(ctx context.Context, userID string, phoneID uint) error {
 
-	_, err := m.db.ExecContext(ctx,
+	_, err := repo.MySQL.ExecContext(ctx,
 		"DELETE FROM phone WHERE userID = ? AND id = ?",
 		userID,
 		phoneID,
@@ -278,9 +278,9 @@ func (m MySQLRepo) DeletePhone(ctx context.Context, userID string, phoneID uint)
 	return nil
 }
 
-func (m MySQLRepo) AddAddress(ctx context.Context, userID string, address user.Address) (user.Address, error) {
+func (repo Repo) AddAddress(ctx context.Context, userID string, address user.Address) (user.Address, error) {
 
-	noAddressesQuery := m.db.QueryRowContext(
+	noAddressesQuery := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT COUNT(*) FROM address WHERE userID = ?",
 		userID,
@@ -296,7 +296,7 @@ func (m MySQLRepo) AddAddress(ctx context.Context, userID string, address user.A
 		return user.Address{}, errors.New("max number of addresses reached (3/3)")
 	}
 
-	_, err = m.db.ExecContext(
+	_, err = repo.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO address (country, province, city, street, postalcode, no, description, userID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		address.Country,
@@ -315,9 +315,9 @@ func (m MySQLRepo) AddAddress(ctx context.Context, userID string, address user.A
 	return address, nil
 }
 
-func (m MySQLRepo) GetAddress(ctx context.Context, userID string, addressID uint) (user.Address, error) {
+func (repo Repo) GetAddress(ctx context.Context, userID string, addressID uint) (user.Address, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT country, province, city, street, postalCode, no, description FROM address WHERE userID = ? AND id = ?",
 		userID,
@@ -342,9 +342,9 @@ func (m MySQLRepo) GetAddress(ctx context.Context, userID string, addressID uint
 	return address, nil
 }
 
-func (m MySQLRepo) GetAddresses(ctx context.Context, userID string) ([]user.Address, error) {
+func (repo Repo) GetAddresses(ctx context.Context, userID string) ([]user.Address, error) {
 
-	result, err := m.db.QueryContext(
+	result, err := repo.MySQL.QueryContext(
 		ctx,
 		"SELECT id, country, province, city, street, postalCode, no, description FROM address WHERE userID = ?",
 		userID,
@@ -377,9 +377,9 @@ func (m MySQLRepo) GetAddresses(ctx context.Context, userID string) ([]user.Addr
 
 	return addresses, nil
 }
-func (m MySQLRepo) DeleteAddress(ctx context.Context, userID string, addressID uint) error {
+func (repo Repo) DeleteAddress(ctx context.Context, userID string, addressID uint) error {
 
-	_, err := m.db.ExecContext(
+	_, err := repo.MySQL.ExecContext(
 		ctx,
 		"DELETE FROM address WHERE userID = ? AND id = ?",
 		userID,
@@ -393,9 +393,9 @@ func (m MySQLRepo) DeleteAddress(ctx context.Context, userID string, addressID u
 	return nil
 }
 
-func (m MySQLRepo) DeleteUser(ctx context.Context, userID string) error {
+func (repo Repo) DeleteUser(ctx context.Context, userID string) error {
 
-	result, err := m.db.QueryContext(
+	result, err := repo.MySQL.QueryContext(
 		ctx,
 		"DELETE FROM user WHERE id = ?",
 		userID,
@@ -409,9 +409,9 @@ func (m MySQLRepo) DeleteUser(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (m MySQLRepo) DoesUserExist(ctx context.Context, userID string) (bool, error) {
+func (repo Repo) DoesUserExist(ctx context.Context, userID string) (bool, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM user WHERE id = ?)",
 		userID,
@@ -426,9 +426,9 @@ func (m MySQLRepo) DoesUserExist(ctx context.Context, userID string) (bool, erro
 	return doesExist, nil
 }
 
-func (m MySQLRepo) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, error) {
+func (repo Repo) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM phone WHERE id = ?)",
 		phoneID,
@@ -442,9 +442,9 @@ func (m MySQLRepo) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, erro
 	return doesExist, nil
 }
 
-func (m MySQLRepo) DoesAddressExist(ctx context.Context, addressID uint) (bool, error) {
+func (repo Repo) DoesAddressExist(ctx context.Context, addressID uint) (bool, error) {
 
-	result := m.db.QueryRowContext(
+	result := repo.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM address WHERE id = ?)",
 		addressID,

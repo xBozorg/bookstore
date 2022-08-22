@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	orderEntity "github.com/XBozorg/bookstore/entity/order"
@@ -18,7 +18,7 @@ import (
 
 var zarinpalConfig = config.Conf.GetZarinpalConfig()
 
-func ZarinpalPayment(repo repository.MySQLRepo, validator order.ValidateGetOrderPaymentInfo) echo.HandlerFunc {
+func ZarinpalPayment(repo repository.Repo, validator order.ValidateGetOrderPaymentInfo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetOrderPaymentInfoRequest{}
@@ -79,7 +79,7 @@ func ZarinpalPayment(repo repository.MySQLRepo, validator order.ValidateGetOrder
 	}
 }
 
-func ZarinpalPaymentVerification(repo repository.MySQLRepo) echo.HandlerFunc {
+func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		authority := c.QueryParam("Authority")

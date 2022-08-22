@@ -2,14 +2,14 @@ package main
 
 import (
 	v1 "github.com/XBozorg/bookstore/adapter/delivery/http/v1"
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/log"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 var (
-	repo repository.MySQLRepo
+	repo repository.Repo
 )
 
 func init() {
@@ -24,16 +24,18 @@ func init() {
 
 	log.I.Infoln("Config file Loaded")
 
-	mysqlConf := config.Conf.GetMySQlConfig() // connect to mysql
-	repo, err = repository.Connect(mysqlConf)
+	err = repo.Connect(&config.Conf) // connect repository to databases
 	if err != nil {
 		log.E.Panic(err)
 	}
 
-	log.I.Infoln("Connected to MySQL")
+	log.I.Infoln("Repository Connected")
+
 }
 
 func main() {
+
+	defer repo.Close()
 
 	e := v1.Routing(repo)
 

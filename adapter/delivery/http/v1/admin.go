@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/XBozorg/bookstore/adapter/auth"
-	repository "github.com/XBozorg/bookstore/adapter/repository/mysql"
+	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/admin"
@@ -50,7 +50,7 @@ func AdminAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func GetAdmin(repo repository.MySQLRepo, validator admin.ValidateGetAdmin) echo.HandlerFunc {
+func GetAdmin(repo repository.Repo, validator admin.ValidateGetAdmin) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetAdminRequest{}
@@ -73,7 +73,7 @@ func GetAdmin(repo repository.MySQLRepo, validator admin.ValidateGetAdmin) echo.
 	}
 }
 
-func GetAdmins(repo repository.MySQLRepo) echo.HandlerFunc {
+func GetAdmins(repo repository.Repo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAdminsRequest{}
 
@@ -86,7 +86,7 @@ func GetAdmins(repo repository.MySQLRepo) echo.HandlerFunc {
 	}
 }
 
-func LoginAdmin(repo repository.MySQLRepo, validator admin.ValidateLoginAdmin) echo.HandlerFunc {
+func LoginAdmin(repo repository.Repo, validator admin.ValidateLoginAdmin) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.LoginAdminRequest{}
