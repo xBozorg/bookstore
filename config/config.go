@@ -11,6 +11,7 @@ type Config struct {
 	jwt      JwtConfig      `mapstructure:"jwt"`
 	echo     EchoConfig     `mapstructure:"echo"`
 	zarinpal ZarinpalConfig `mapstructure:"zarinpal"`
+	redis    RedisConfig    `mapstructure:"redis"`
 }
 
 type MySQLConfig struct {
@@ -34,11 +35,17 @@ type ZarinpalConfig struct {
 	MerchantID string `mapstructure:"merchant_id"`
 	Sandbox    bool   `mapstructure:"sandbox"`
 }
+type RedisConfig struct {
+	Address string `mapstructure:"address"`
+	Pass    string `mapstructure:"pass"`
+	DB      int    `mapstructure:"db"`
+}
 
 func (c *Config) GetMySQlConfig() *MySQLConfig       { return &c.mySQL }
 func (c *Config) GetJWTConfig() *JwtConfig           { return &c.jwt }
 func (c *Config) GetEchoConfig() *EchoConfig         { return &c.echo }
 func (c *Config) GetZarinpalConfig() *ZarinpalConfig { return &c.zarinpal }
+func (c *Config) GetRedisConfig() *RedisConfig       { return &c.redis }
 
 func (c *Config) Read() error {
 	v := viper.New()
@@ -60,6 +67,9 @@ func (c *Config) Read() error {
 		return err
 	}
 	if err := v.UnmarshalKey("zarinpal", &c.zarinpal); err != nil {
+		return err
+	}
+	if err := v.UnmarshalKey("redis", &c.redis); err != nil {
 		return err
 	}
 

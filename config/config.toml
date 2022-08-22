@@ -44,3 +44,8 @@ logger_format = """{"time":"${time_custom}","id":"${id}","remote_ip":"${remote_i
 [zarinpal]
 merchant_id = ""
 sandbox = true
+
+[redis]
+address = "host:port"
+pass = ""
+db = 0
