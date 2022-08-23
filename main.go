@@ -2,14 +2,10 @@ package main
 
 import (
 	v1 "github.com/XBozorg/bookstore/adapter/delivery/http/v1"
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/log"
 	"github.com/labstack/echo/v4/middleware"
-)
-
-var (
-	repo repository.Repo
 )
 
 func init() {
@@ -24,7 +20,7 @@ func init() {
 
 	log.I.Infoln("Config file Loaded")
 
-	err = repo.Connect(&config.Conf) // connect repository to databases
+	err = repository.Repo.Connect(&config.Conf) // connect repository to databases
 	if err != nil {
 		log.E.Panic(err)
 	}
@@ -35,9 +31,9 @@ func init() {
 
 func main() {
 
-	defer repo.Close()
+	defer repository.Repo.Close()
 
-	e := v1.Routing(repo)
+	e := v1.Routing(repository.Repo)
 
 	e.Use(middleware.Recover())
 

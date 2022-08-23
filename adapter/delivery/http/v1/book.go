@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"strings"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/book"
 	"github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 )
 
-func AddAuthor(repo repository.Repo, validator book.ValidateAddAuthor) echo.HandlerFunc {
+func AddAuthor(storage repository.Storage, validator book.ValidateAddAuthor) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddAuthorRequest{}
 
@@ -24,7 +24,7 @@ func AddAuthor(repo repository.Repo, validator book.ValidateAddAuthor) echo.Hand
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).AddAuthor(c.Request().Context(), req)
+		resp, err := book.New(storage).AddAuthor(c.Request().Context(), req)
 		if err != nil {
 
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
@@ -37,7 +37,7 @@ func AddAuthor(repo repository.Repo, validator book.ValidateAddAuthor) echo.Hand
 	}
 }
 
-func GetAuthor(repo repository.Repo, validator book.ValidateGetAuthor) echo.HandlerFunc {
+func GetAuthor(storage repository.Storage, validator book.ValidateGetAuthor) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAuthorRequest{}
 
@@ -55,7 +55,7 @@ func GetAuthor(repo repository.Repo, validator book.ValidateGetAuthor) echo.Hand
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetAuthor(c.Request().Context(), req)
+		resp, err := book.New(storage).GetAuthor(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -63,11 +63,11 @@ func GetAuthor(repo repository.Repo, validator book.ValidateGetAuthor) echo.Hand
 	}
 }
 
-func GetAuthors(repo repository.Repo) echo.HandlerFunc {
+func GetAuthors(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAuthorsRequest{}
 
-		resp, err := book.New(repo).GetAuthors(c.Request().Context(), req)
+		resp, err := book.New(storage).GetAuthors(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -75,7 +75,7 @@ func GetAuthors(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func DeleteAuthor(repo repository.Repo, validator book.ValidateDeleteAuthor) echo.HandlerFunc {
+func DeleteAuthor(storage repository.Storage, validator book.ValidateDeleteAuthor) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteAuthorRequest{}
 
@@ -93,7 +93,7 @@ func DeleteAuthor(repo repository.Repo, validator book.ValidateDeleteAuthor) ech
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).DeleteAuthor(c.Request().Context(), req)
+		resp, err := book.New(storage).DeleteAuthor(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -101,7 +101,7 @@ func DeleteAuthor(repo repository.Repo, validator book.ValidateDeleteAuthor) ech
 	}
 }
 
-func AddPublisher(repo repository.Repo, validator book.ValidateAddPublisher) echo.HandlerFunc {
+func AddPublisher(storage repository.Storage, validator book.ValidateAddPublisher) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddPublisherRequest{}
 
@@ -113,7 +113,7 @@ func AddPublisher(repo repository.Repo, validator book.ValidateAddPublisher) ech
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).AddPublisher(c.Request().Context(), req)
+		resp, err := book.New(storage).AddPublisher(c.Request().Context(), req)
 		if err != nil {
 
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
@@ -126,7 +126,7 @@ func AddPublisher(repo repository.Repo, validator book.ValidateAddPublisher) ech
 	}
 }
 
-func GetPublisher(repo repository.Repo, validator book.ValidateGetPublisher) echo.HandlerFunc {
+func GetPublisher(storage repository.Storage, validator book.ValidateGetPublisher) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPublisherRequest{}
 
@@ -144,7 +144,7 @@ func GetPublisher(repo repository.Repo, validator book.ValidateGetPublisher) ech
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetPublisher(c.Request().Context(), req)
+		resp, err := book.New(storage).GetPublisher(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -152,11 +152,11 @@ func GetPublisher(repo repository.Repo, validator book.ValidateGetPublisher) ech
 	}
 }
 
-func GetPublishers(repo repository.Repo) echo.HandlerFunc {
+func GetPublishers(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPublishersRequest{}
 
-		resp, err := book.New(repo).GetPublishers(c.Request().Context(), req)
+		resp, err := book.New(storage).GetPublishers(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -164,7 +164,7 @@ func GetPublishers(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func DeletePublisher(repo repository.Repo, validator book.ValidateDeletePublisher) echo.HandlerFunc {
+func DeletePublisher(storage repository.Storage, validator book.ValidateDeletePublisher) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePublisherRequest{}
 
@@ -182,7 +182,7 @@ func DeletePublisher(repo repository.Repo, validator book.ValidateDeletePublishe
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).DeletePublisher(c.Request().Context(), req)
+		resp, err := book.New(storage).DeletePublisher(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -190,7 +190,7 @@ func DeletePublisher(repo repository.Repo, validator book.ValidateDeletePublishe
 	}
 }
 
-func AddTopic(repo repository.Repo, validator book.ValidateAddTopic) echo.HandlerFunc {
+func AddTopic(storage repository.Storage, validator book.ValidateAddTopic) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddTopicRequest{}
 
@@ -202,7 +202,7 @@ func AddTopic(repo repository.Repo, validator book.ValidateAddTopic) echo.Handle
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).AddTopic(c.Request().Context(), req)
+		resp, err := book.New(storage).AddTopic(c.Request().Context(), req)
 		if err != nil {
 
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
@@ -215,7 +215,7 @@ func AddTopic(repo repository.Repo, validator book.ValidateAddTopic) echo.Handle
 	}
 }
 
-func GetTopic(repo repository.Repo, validator book.ValidateGetTopic) echo.HandlerFunc {
+func GetTopic(storage repository.Storage, validator book.ValidateGetTopic) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetTopicRequest{}
 
@@ -233,7 +233,7 @@ func GetTopic(repo repository.Repo, validator book.ValidateGetTopic) echo.Handle
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetTopic(c.Request().Context(), req)
+		resp, err := book.New(storage).GetTopic(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -241,11 +241,11 @@ func GetTopic(repo repository.Repo, validator book.ValidateGetTopic) echo.Handle
 	}
 }
 
-func GetTopics(repo repository.Repo) echo.HandlerFunc {
+func GetTopics(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetTopicsRequest{}
 
-		resp, err := book.New(repo).GetTopics(c.Request().Context(), req)
+		resp, err := book.New(storage).GetTopics(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -253,7 +253,7 @@ func GetTopics(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func DeleteTopic(repo repository.Repo, validator book.ValidateDeleteTopic) echo.HandlerFunc {
+func DeleteTopic(storage repository.Storage, validator book.ValidateDeleteTopic) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteTopicRequest{}
 
@@ -271,7 +271,7 @@ func DeleteTopic(repo repository.Repo, validator book.ValidateDeleteTopic) echo.
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).DeleteTopic(c.Request().Context(), req)
+		resp, err := book.New(storage).DeleteTopic(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -279,7 +279,7 @@ func DeleteTopic(repo repository.Repo, validator book.ValidateDeleteTopic) echo.
 	}
 }
 
-func AddLanguage(repo repository.Repo, validator book.ValidateAddLanguage) echo.HandlerFunc {
+func AddLanguage(storage repository.Storage, validator book.ValidateAddLanguage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddLanguageRequest{}
 
@@ -291,7 +291,7 @@ func AddLanguage(repo repository.Repo, validator book.ValidateAddLanguage) echo.
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).AddLanguage(c.Request().Context(), req)
+		resp, err := book.New(storage).AddLanguage(c.Request().Context(), req)
 		if err != nil {
 
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
@@ -304,7 +304,7 @@ func AddLanguage(repo repository.Repo, validator book.ValidateAddLanguage) echo.
 	}
 }
 
-func GetLanguage(repo repository.Repo, validator book.ValidateGetLanguage) echo.HandlerFunc {
+func GetLanguage(storage repository.Storage, validator book.ValidateGetLanguage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetLanguageRequest{}
 
@@ -322,7 +322,7 @@ func GetLanguage(repo repository.Repo, validator book.ValidateGetLanguage) echo.
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetLanguage(c.Request().Context(), req)
+		resp, err := book.New(storage).GetLanguage(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -330,11 +330,11 @@ func GetLanguage(repo repository.Repo, validator book.ValidateGetLanguage) echo.
 	}
 }
 
-func GetLanguages(repo repository.Repo) echo.HandlerFunc {
+func GetLanguages(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetLanguagesRequest{}
 
-		resp, err := book.New(repo).GetLanguages(c.Request().Context(), req)
+		resp, err := book.New(storage).GetLanguages(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -342,7 +342,7 @@ func GetLanguages(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func DeleteLanguage(repo repository.Repo, validator book.ValidateDeleteLanguage) echo.HandlerFunc {
+func DeleteLanguage(storage repository.Storage, validator book.ValidateDeleteLanguage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteLanguageRequest{}
 
@@ -360,7 +360,7 @@ func DeleteLanguage(repo repository.Repo, validator book.ValidateDeleteLanguage)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).DeleteLanguage(c.Request().Context(), req)
+		resp, err := book.New(storage).DeleteLanguage(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -368,7 +368,7 @@ func DeleteLanguage(repo repository.Repo, validator book.ValidateDeleteLanguage)
 	}
 }
 
-func AddBook(repo repository.Repo, validator book.ValidateAddBook) echo.HandlerFunc {
+func AddBook(storage repository.Storage, validator book.ValidateAddBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddBookRequest{}
 
@@ -380,7 +380,7 @@ func AddBook(repo repository.Repo, validator book.ValidateAddBook) echo.HandlerF
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).AddBook(c.Request().Context(), req)
+		resp, err := book.New(storage).AddBook(c.Request().Context(), req)
 		if err != nil {
 
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
@@ -393,7 +393,7 @@ func AddBook(repo repository.Repo, validator book.ValidateAddBook) echo.HandlerF
 	}
 }
 
-func GetBook(repo repository.Repo, validator book.ValidateGetBook) echo.HandlerFunc {
+func GetBook(storage repository.Storage, validator book.ValidateGetBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetBookRequest{}
 
@@ -411,7 +411,7 @@ func GetBook(repo repository.Repo, validator book.ValidateGetBook) echo.HandlerF
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetBook(c.Request().Context(), req)
+		resp, err := book.New(storage).GetBook(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -419,7 +419,7 @@ func GetBook(repo repository.Repo, validator book.ValidateGetBook) echo.HandlerF
 	}
 }
 
-func SetBookDiscount(repo repository.Repo, validator book.ValidateSetBookDiscount) echo.HandlerFunc {
+func SetBookDiscount(storage repository.Storage, validator book.ValidateSetBookDiscount) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetBookDiscountRequest{}
 
@@ -441,7 +441,7 @@ func SetBookDiscount(repo repository.Repo, validator book.ValidateSetBookDiscoun
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).SetBookDiscount(c.Request().Context(), req)
+		resp, err := book.New(storage).SetBookDiscount(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -449,7 +449,7 @@ func SetBookDiscount(repo repository.Repo, validator book.ValidateSetBookDiscoun
 	}
 }
 
-func EditBook(repo repository.Repo, validator book.ValidateEditBook) echo.HandlerFunc {
+func EditBook(storage repository.Storage, validator book.ValidateEditBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.EditBookRequest{}
 
@@ -471,7 +471,7 @@ func EditBook(repo repository.Repo, validator book.ValidateEditBook) echo.Handle
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).EditBook(c.Request().Context(), req)
+		resp, err := book.New(storage).EditBook(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -479,11 +479,11 @@ func EditBook(repo repository.Repo, validator book.ValidateEditBook) echo.Handle
 	}
 }
 
-func GetAllBooks(repo repository.Repo) echo.HandlerFunc {
+func GetAllBooks(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllBooksRequest{}
 
-		resp, err := book.New(repo).GetAllBooks(c.Request().Context(), req)
+		resp, err := book.New(storage).GetAllBooks(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -491,7 +491,7 @@ func GetAllBooks(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func GetAuthorBooks(repo repository.Repo, validator book.ValidateGetAuthorBooks) echo.HandlerFunc {
+func GetAuthorBooks(storage repository.Storage, validator book.ValidateGetAuthorBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAuthorBooksRequest{}
 
@@ -509,7 +509,7 @@ func GetAuthorBooks(repo repository.Repo, validator book.ValidateGetAuthorBooks)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetAuthorBooks(c.Request().Context(), req)
+		resp, err := book.New(storage).GetAuthorBooks(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -517,7 +517,7 @@ func GetAuthorBooks(repo repository.Repo, validator book.ValidateGetAuthorBooks)
 	}
 }
 
-func GetPublisherBooks(repo repository.Repo, validator book.ValidateGetPublisherBooks) echo.HandlerFunc {
+func GetPublisherBooks(storage repository.Storage, validator book.ValidateGetPublisherBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPublisherBooksRequest{}
 
@@ -535,7 +535,7 @@ func GetPublisherBooks(repo repository.Repo, validator book.ValidateGetPublisher
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetPublisherBooks(c.Request().Context(), req)
+		resp, err := book.New(storage).GetPublisherBooks(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -543,7 +543,7 @@ func GetPublisherBooks(repo repository.Repo, validator book.ValidateGetPublisher
 	}
 }
 
-func GetTopicBooks(repo repository.Repo, validator book.ValidateGetTopicBooks) echo.HandlerFunc {
+func GetTopicBooks(storage repository.Storage, validator book.ValidateGetTopicBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetTopicBooksRequest{}
 
@@ -561,7 +561,7 @@ func GetTopicBooks(repo repository.Repo, validator book.ValidateGetTopicBooks) e
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetTopicBooks(c.Request().Context(), req)
+		resp, err := book.New(storage).GetTopicBooks(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -569,7 +569,7 @@ func GetTopicBooks(repo repository.Repo, validator book.ValidateGetTopicBooks) e
 	}
 }
 
-func GetLangBooks(repo repository.Repo, validator book.ValidateGetLangBooks) echo.HandlerFunc {
+func GetLangBooks(storage repository.Storage, validator book.ValidateGetLangBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetLangBooksRequest{}
 
@@ -587,7 +587,7 @@ func GetLangBooks(repo repository.Repo, validator book.ValidateGetLangBooks) ech
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetLangBooks(c.Request().Context(), req)
+		resp, err := book.New(storage).GetLangBooks(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -595,7 +595,7 @@ func GetLangBooks(repo repository.Repo, validator book.ValidateGetLangBooks) ech
 	}
 }
 
-func DeleteBook(repo repository.Repo, validator book.ValidateDeleteBook) echo.HandlerFunc {
+func DeleteBook(storage repository.Storage, validator book.ValidateDeleteBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteBookRequest{}
 
@@ -613,7 +613,7 @@ func DeleteBook(repo repository.Repo, validator book.ValidateDeleteBook) echo.Ha
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).DeleteBook(c.Request().Context(), req)
+		resp, err := book.New(storage).DeleteBook(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -621,7 +621,7 @@ func DeleteBook(repo repository.Repo, validator book.ValidateDeleteBook) echo.Ha
 	}
 }
 
-func GetUserDigitalBooks(repo repository.Repo, validator book.ValidateGetUserDigitalBooks) echo.HandlerFunc {
+func GetUserDigitalBooks(storage repository.Storage, validator book.ValidateGetUserDigitalBooks) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserDigitalBooksRequest{}
 
@@ -637,7 +637,7 @@ func GetUserDigitalBooks(repo repository.Repo, validator book.ValidateGetUserDig
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := book.New(repo).GetUserDigitalBooks(c.Request().Context(), req)
+		resp, err := book.New(storage).GetUserDigitalBooks(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -651,7 +651,7 @@ func GetUserDigitalBooks(repo repository.Repo, validator book.ValidateGetUserDig
 	}
 }
 
-func DownloadBook(repo repository.Repo, validator book.ValidateDownloadBook) echo.HandlerFunc {
+func DownloadBook(storage repository.Storage, validator book.ValidateDownloadBook) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DownloadBookRequest{}
 

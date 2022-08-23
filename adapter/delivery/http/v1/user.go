@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/XBozorg/bookstore/adapter/auth"
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/user"
@@ -51,7 +51,7 @@ func UserAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func CreateUser(repo repository.Repo, validator user.ValidateCreateUser) echo.HandlerFunc {
+func CreateUser(storage repository.Storage, validator user.ValidateCreateUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		createUserReq := dto.CreateUserRequest{}
@@ -63,7 +63,7 @@ func CreateUser(repo repository.Repo, validator user.ValidateCreateUser) echo.Ha
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		createUserResp, err := user.New(repo).CreateUser(c.Request().Context(), createUserReq)
+		createUserResp, err := user.New(storage).CreateUser(c.Request().Context(), createUserReq)
 
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
@@ -90,7 +90,7 @@ func CreateUser(repo repository.Repo, validator user.ValidateCreateUser) echo.Ha
 	}
 }
 
-func LoginUser(repo repository.Repo, validator user.ValidateLoginUser) echo.HandlerFunc {
+func LoginUser(storage repository.Storage, validator user.ValidateLoginUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.LoginUserRequest{}
@@ -102,7 +102,7 @@ func LoginUser(repo repository.Repo, validator user.ValidateLoginUser) echo.Hand
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).LoginUser(c.Request().Context(), req)
+		resp, err := user.New(storage).LoginUser(c.Request().Context(), req)
 		if err != nil {
 			if strings.Contains(err.Error(), "no rows") {
 				return echo.NewHTTPError(http.StatusNotFound, "user not found")
@@ -128,7 +128,7 @@ func UserLoginForm() echo.HandlerFunc { // simple handler for redirect unauthent
 	}
 }
 
-func GetUser(repo repository.Repo, validator user.ValidateGetUser) echo.HandlerFunc {
+func GetUser(storage repository.Storage, validator user.ValidateGetUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetUserRequest{}
@@ -142,7 +142,7 @@ func GetUser(repo repository.Repo, validator user.ValidateGetUser) echo.HandlerF
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).GetUser(c.Request().Context(), req)
+		resp, err := user.New(storage).GetUser(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -151,11 +151,11 @@ func GetUser(repo repository.Repo, validator user.ValidateGetUser) echo.HandlerF
 	}
 }
 
-func GetUsers(repo repository.Repo) echo.HandlerFunc {
+func GetUsers(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUsersRequest{}
 
-		resp, err := user.New(repo).GetUsers(c.Request().Context(), req)
+		resp, err := user.New(storage).GetUsers(c.Request().Context(), req)
 		if err != nil {
 			echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -164,7 +164,7 @@ func GetUsers(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func DeleteUser(repo repository.Repo, validator user.ValidateDeleteUser) echo.HandlerFunc {
+func DeleteUser(storage repository.Storage, validator user.ValidateDeleteUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.DeleteUserRequest{}
@@ -178,7 +178,7 @@ func DeleteUser(repo repository.Repo, validator user.ValidateDeleteUser) echo.Ha
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		_, err := user.New(repo).DeleteUser(c.Request().Context(), req)
+		_, err := user.New(storage).DeleteUser(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -187,7 +187,7 @@ func DeleteUser(repo repository.Repo, validator user.ValidateDeleteUser) echo.Ha
 	}
 }
 
-func ChangePassword(repo repository.Repo, validator user.ValidateChangePass) echo.HandlerFunc {
+func ChangePassword(storage repository.Storage, validator user.ValidateChangePass) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.ChangePassRequest{}
 		if err := c.Bind(&req); err != nil {
@@ -200,7 +200,7 @@ func ChangePassword(repo repository.Repo, validator user.ValidateChangePass) ech
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		_, err := user.New(repo).ChangePassword(c.Request().Context(), req)
+		_, err := user.New(storage).ChangePassword(c.Request().Context(), req)
 		if err != nil {
 			if err.Error() == "password does not match" {
 				return echo.NewHTTPError(http.StatusForbidden, err.Error())
@@ -213,7 +213,7 @@ func ChangePassword(repo repository.Repo, validator user.ValidateChangePass) ech
 	}
 }
 
-func ChangeUsername(repo repository.Repo, validator user.ValidateChangeUsername) echo.HandlerFunc {
+func ChangeUsername(storage repository.Storage, validator user.ValidateChangeUsername) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.ChangeUsernameRequest{}
 		if err := c.Bind(&req); err != nil {
@@ -226,7 +226,7 @@ func ChangeUsername(repo repository.Repo, validator user.ValidateChangeUsername)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).ChangeUsername(c.Request().Context(), req)
+		resp, err := user.New(storage).ChangeUsername(c.Request().Context(), req)
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
 				return echo.NewHTTPError(http.StatusConflict, "username already exists")
@@ -238,7 +238,7 @@ func ChangeUsername(repo repository.Repo, validator user.ValidateChangeUsername)
 	}
 }
 
-func AddPhone(repo repository.Repo, validator user.ValidateAddPhone) echo.HandlerFunc {
+func AddPhone(storage repository.Storage, validator user.ValidateAddPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddPhoneRequest{}
 		if err := c.Bind(&req); err != nil {
@@ -251,7 +251,7 @@ func AddPhone(repo repository.Repo, validator user.ValidateAddPhone) echo.Handle
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).AddPhone(c.Request().Context(), req)
+		resp, err := user.New(storage).AddPhone(c.Request().Context(), req)
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok && driverErr.Number == 1062 {
 				return echo.NewHTTPError(http.StatusConflict, "Phonenumber already exists")
@@ -265,7 +265,7 @@ func AddPhone(repo repository.Repo, validator user.ValidateAddPhone) echo.Handle
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetPhone(repo repository.Repo, validator user.ValidateGetPhone) echo.HandlerFunc {
+func GetPhone(storage repository.Storage, validator user.ValidateGetPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhoneRequest{}
 		pid, err := strconv.ParseUint(c.Param("phoneID"), 10, 64)
@@ -283,7 +283,7 @@ func GetPhone(repo repository.Repo, validator user.ValidateGetPhone) echo.Handle
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).GetPhone(c.Request().Context(), req)
+		resp, err := user.New(storage).GetPhone(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -291,7 +291,7 @@ func GetPhone(repo repository.Repo, validator user.ValidateGetPhone) echo.Handle
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetPhones(repo repository.Repo, validator user.ValidateGetPhones) echo.HandlerFunc {
+func GetPhones(storage repository.Storage, validator user.ValidateGetPhones) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhonesRequest{}
 		userCookie, _ := c.Cookie("ID")
@@ -301,7 +301,7 @@ func GetPhones(repo repository.Repo, validator user.ValidateGetPhones) echo.Hand
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).GetPhones(c.Request().Context(), req)
+		resp, err := user.New(storage).GetPhones(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -309,7 +309,7 @@ func GetPhones(repo repository.Repo, validator user.ValidateGetPhones) echo.Hand
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func DeletePhone(repo repository.Repo, validator user.ValidateDeletePhone) echo.HandlerFunc {
+func DeletePhone(storage repository.Storage, validator user.ValidateDeletePhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePhoneRequest{}
 		pid, err := strconv.ParseUint(c.Param("phoneID"), 10, 64)
@@ -327,7 +327,7 @@ func DeletePhone(repo repository.Repo, validator user.ValidateDeletePhone) echo.
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).DeletePhone(c.Request().Context(), req)
+		resp, err := user.New(storage).DeletePhone(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -336,7 +336,7 @@ func DeletePhone(repo repository.Repo, validator user.ValidateDeletePhone) echo.
 	}
 }
 
-func AddAddress(repo repository.Repo, validator user.ValidateAddAddress) echo.HandlerFunc {
+func AddAddress(storage repository.Storage, validator user.ValidateAddAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddAddressRequest{}
 
@@ -351,7 +351,7 @@ func AddAddress(repo repository.Repo, validator user.ValidateAddAddress) echo.Ha
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).AddAddress(c.Request().Context(), req)
+		resp, err := user.New(storage).AddAddress(c.Request().Context(), req)
 		if err != nil {
 			if strings.Contains(err.Error(), "max") {
 				return echo.NewHTTPError(http.StatusForbidden, err.Error())
@@ -361,7 +361,7 @@ func AddAddress(repo repository.Repo, validator user.ValidateAddAddress) echo.Ha
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetAddress(repo repository.Repo, validator user.ValidateGetAddress) echo.HandlerFunc {
+func GetAddress(storage repository.Storage, validator user.ValidateGetAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetAddressRequest{}
@@ -381,14 +381,14 @@ func GetAddress(repo repository.Repo, validator user.ValidateGetAddress) echo.Ha
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).GetAddress(c.Request().Context(), req)
+		resp, err := user.New(storage).GetAddress(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func GetAddresses(repo repository.Repo, validator user.ValidateGetAddresses) echo.HandlerFunc {
+func GetAddresses(storage repository.Storage, validator user.ValidateGetAddresses) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAddressesRequest{}
 		userCookie, _ := c.Cookie("ID")
@@ -398,14 +398,14 @@ func GetAddresses(repo repository.Repo, validator user.ValidateGetAddresses) ech
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).GetAddresses(c.Request().Context(), req)
+		resp, err := user.New(storage).GetAddresses(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, resp)
 	}
 }
-func DeleteAddress(repo repository.Repo, validator user.ValidateDeleteAddress) echo.HandlerFunc {
+func DeleteAddress(storage repository.Storage, validator user.ValidateDeleteAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteAddressRequest{}
 		aid, err := strconv.ParseUint(c.Param("addressID"), 10, 64)
@@ -424,7 +424,7 @@ func DeleteAddress(repo repository.Repo, validator user.ValidateDeleteAddress) e
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := user.New(repo).DeleteAddress(c.Request().Context(), req)
+		resp, err := user.New(storage).DeleteAddress(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

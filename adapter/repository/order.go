@@ -21,9 +21,9 @@ type itemPrice struct {
 	PhysicalDiscount uint
 }
 
-func (repo Repo) DoesOrderOpen(ctx context.Context, orderID uint) (bool, error) {
+func (storage Storage) DoesOrderOpen(ctx context.Context, orderID uint) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT 1 FROM orders WHERE id = ? AND status = ?",
 		orderID,
@@ -39,9 +39,9 @@ func (repo Repo) DoesOrderOpen(ctx context.Context, orderID uint) (bool, error) 
 	return open, err
 }
 
-func (repo Repo) DoesOrderExist(ctx context.Context, orderID uint) (bool, error) {
+func (storage Storage) DoesOrderExist(ctx context.Context, orderID uint) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT 1 FROM orders WHERE id = ?",
 		orderID,
@@ -56,9 +56,9 @@ func (repo Repo) DoesOrderExist(ctx context.Context, orderID uint) (bool, error)
 	return exists, err
 }
 
-func (repo Repo) DoesPromoExist(ctx context.Context, promoID uint) (bool, error) {
+func (storage Storage) DoesPromoExist(ctx context.Context, promoID uint) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT 1 FROM promo WHERE id = ?",
 		promoID,
@@ -73,9 +73,9 @@ func (repo Repo) DoesPromoExist(ctx context.Context, promoID uint) (bool, error)
 	return exists, err
 }
 
-func (repo Repo) DoesPromoCodeExist(ctx context.Context, promoCode, userID string) (bool, error) {
+func (storage Storage) DoesPromoCodeExist(ctx context.Context, promoCode, userID string) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT 1 FROM promo 
 		WHERE id IN (SELECT promo_id FROM promo_user WHERE user_id = ?) AND promo.code = ?`,
@@ -92,9 +92,9 @@ func (repo Repo) DoesPromoCodeExist(ctx context.Context, promoCode, userID strin
 	return exist, nil
 }
 
-func (repo Repo) DoesItemExist(ctx context.Context, itemID uint) (bool, error) {
+func (storage Storage) DoesItemExist(ctx context.Context, itemID uint) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT 1 FROM item WHERE id = ?",
 		itemID,
@@ -109,9 +109,9 @@ func (repo Repo) DoesItemExist(ctx context.Context, itemID uint) (bool, error) {
 	return exists, err
 }
 
-func (repo Repo) CreateEmptyOrder(ctx context.Context, userID string) (uint, error) {
+func (storage Storage) CreateEmptyOrder(ctx context.Context, userID string) (uint, error) {
 
-	result, err := repo.MySQL.ExecContext(
+	result, err := storage.MySQL.ExecContext(
 		ctx,
 		`INSERT INTO orders 
 		(creation_date , status , total , user_id) VALUES (?,?,?,?)`,
@@ -133,9 +133,9 @@ func (repo Repo) CreateEmptyOrder(ctx context.Context, userID string) (uint, err
 	return uint(orderID), nil
 }
 
-func (repo Repo) CheckOpenOrder(ctx context.Context, userID string) (uint, error) {
+func (storage Storage) CheckOpenOrder(ctx context.Context, userID string) (uint, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id FROM orders WHERE user_id=? AND status=?",
 		userID,
@@ -148,7 +148,7 @@ func (repo Repo) CheckOpenOrder(ctx context.Context, userID string) (uint, error
 	if err != nil {
 
 		if strings.Contains(err.Error(), "no rows") {
-			id, errC := repo.CreateEmptyOrder(ctx, userID)
+			id, errC := storage.CreateEmptyOrder(ctx, userID)
 			if errC != nil {
 				return 0, errC
 			}
@@ -161,19 +161,19 @@ func (repo Repo) CheckOpenOrder(ctx context.Context, userID string) (uint, error
 	return id, nil
 }
 
-func (repo Repo) AddItem(ctx context.Context, item order.Item, userID string) error {
+func (storage Storage) AddItem(ctx context.Context, item order.Item, userID string) error {
 
-	err := repo.CheckQuantity(ctx, item.Quantity, item.BookID)
+	err := storage.CheckQuantity(ctx, item.Quantity, item.BookID)
 	if err != nil {
 		return err
 	}
 
-	availability, err := repo.CheckAvailability(ctx, item.BookID)
+	availability, err := storage.CheckAvailability(ctx, item.BookID)
 	if err != nil {
 		return err
 	}
 
-	orderID, err := repo.CheckOpenOrder(ctx, userID)
+	orderID, err := storage.CheckOpenOrder(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (repo Repo) AddItem(ctx context.Context, item order.Item, userID string) er
 	switch {
 	case item.Type == order.Bundle && availability == book.BundleAvailable:
 
-		_, err = repo.MySQL.ExecContext(
+		_, err = storage.MySQL.ExecContext(
 			ctx,
 
 			`INSERT INTO item (book_id , type , quantity , order_id) 
@@ -204,14 +204,14 @@ func (repo Repo) AddItem(ctx context.Context, item order.Item, userID string) er
 			return err
 		}
 
-		err := repo.DecreasePhysicalStock(ctx, item.Quantity, item.BookID)
+		err := storage.DecreasePhysicalStock(ctx, item.Quantity, item.BookID)
 		if err != nil {
 			return err
 		}
 
 	case item.Type == order.Physical && availability == book.PhysicalAvailable:
 
-		_, err = repo.MySQL.ExecContext(
+		_, err = storage.MySQL.ExecContext(
 			ctx,
 
 			`INSERT INTO item (book_id , type , quantity , order_id) 
@@ -228,13 +228,13 @@ func (repo Repo) AddItem(ctx context.Context, item order.Item, userID string) er
 			return err
 		}
 
-		err := repo.DecreasePhysicalStock(ctx, item.Quantity, item.BookID)
+		err := storage.DecreasePhysicalStock(ctx, item.Quantity, item.BookID)
 		if err != nil {
 			return err
 		}
 
 	case item.Type == order.Digital && availability == book.DigitalAvailable:
-		_, err = repo.MySQL.ExecContext(
+		_, err = storage.MySQL.ExecContext(
 			ctx,
 
 			`INSERT INTO item (book_id , type , quantity , order_id) 
@@ -264,7 +264,7 @@ func (repo Repo) AddItem(ctx context.Context, item order.Item, userID string) er
 		return errors.New("type / availability does not match")
 	}
 
-	err = repo.SetOrderTotal(ctx, orderID)
+	err = storage.SetOrderTotal(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -272,9 +272,9 @@ func (repo Repo) AddItem(ctx context.Context, item order.Item, userID string) er
 	return nil
 }
 
-func (repo Repo) GetOrderItems(ctx context.Context, orderID uint) ([]order.Item, error) {
+func (storage Storage) GetOrderItems(ctx context.Context, orderID uint) ([]order.Item, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT id , book_id , type , quantity FROM item WHERE order_id = ?",
 		orderID,
@@ -305,11 +305,11 @@ func (repo Repo) GetOrderItems(ctx context.Context, orderID uint) ([]order.Item,
 	return items, nil
 }
 
-func (repo Repo) CheckQuantity(ctx context.Context, quantity, bookID uint) error {
+func (storage Storage) CheckQuantity(ctx context.Context, quantity, bookID uint) error {
 
 	var stock uint
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT physical_stock FROM book WHERE id = ?",
 		bookID,
@@ -326,11 +326,11 @@ func (repo Repo) CheckQuantity(ctx context.Context, quantity, bookID uint) error
 	return nil
 }
 
-func (repo Repo) CheckAvailability(ctx context.Context, bookID uint) (uint, error) {
+func (storage Storage) CheckAvailability(ctx context.Context, bookID uint) (uint, error) {
 
 	var availability uint
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT availability FROM book WHERE id = ?",
 		bookID,
@@ -344,9 +344,9 @@ func (repo Repo) CheckAvailability(ctx context.Context, bookID uint) (uint, erro
 	return availability, nil
 }
 
-func (repo Repo) SetOrderPhone(ctx context.Context, orderID, phoneID uint) error {
+func (storage Storage) SetOrderPhone(ctx context.Context, orderID, phoneID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		`UPDATE orders SET phone_id = ? WHERE id = ?
 		AND (SELECT 1 FROM phone WHERE id = ? AND phone.userID = orders.user_id)`,
@@ -362,9 +362,9 @@ func (repo Repo) SetOrderPhone(ctx context.Context, orderID, phoneID uint) error
 	return nil
 }
 
-func (repo Repo) SetOrderAddress(ctx context.Context, orderID, addressID uint) error {
+func (storage Storage) SetOrderAddress(ctx context.Context, orderID, addressID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		`UPDATE orders SET address_id = ? WHERE id = ?
 		AND (SELECT 1 FROM address WHERE id = ? AND address.userID = orders.user_id)`,
@@ -380,9 +380,9 @@ func (repo Repo) SetOrderAddress(ctx context.Context, orderID, addressID uint) e
 	return nil
 }
 
-func (repo Repo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) error {
+func (storage Storage) IncreaseQuantity(ctx context.Context, itemID, orderID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 
 		`UPDATE item SET 
@@ -401,7 +401,7 @@ func (repo Repo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) err
 		return err
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 
 		`UPDATE book SET physical_stock = physical_stock - 1 
@@ -416,7 +416,7 @@ func (repo Repo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) err
 		return err
 	}
 
-	err = repo.SetOrderTotal(ctx, orderID)
+	err = storage.SetOrderTotal(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -424,9 +424,9 @@ func (repo Repo) IncreaseQuantity(ctx context.Context, itemID, orderID uint) err
 	return nil
 }
 
-func (repo Repo) DecreaseQuantity(ctx context.Context, itemID, orderID uint) error {
+func (storage Storage) DecreaseQuantity(ctx context.Context, itemID, orderID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 
 		`UPDATE item SET 
@@ -445,7 +445,7 @@ func (repo Repo) DecreaseQuantity(ctx context.Context, itemID, orderID uint) err
 		return err
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 
 		`UPDATE book SET 
@@ -461,7 +461,7 @@ func (repo Repo) DecreaseQuantity(ctx context.Context, itemID, orderID uint) err
 		return err
 	}
 
-	err = repo.SetOrderTotal(ctx, orderID)
+	err = storage.SetOrderTotal(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -469,9 +469,9 @@ func (repo Repo) DecreaseQuantity(ctx context.Context, itemID, orderID uint) err
 	return nil
 }
 
-func (repo Repo) DecreasePhysicalStock(ctx context.Context, quantity, bookID uint) error {
+func (storage Storage) DecreasePhysicalStock(ctx context.Context, quantity, bookID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 
 		`UPDATE book SET 
@@ -489,9 +489,9 @@ func (repo Repo) DecreasePhysicalStock(ctx context.Context, quantity, bookID uin
 	return nil
 }
 
-func (repo Repo) RemoveItem(ctx context.Context, itemID, orderID uint) error {
+func (storage Storage) RemoveItem(ctx context.Context, itemID, orderID uint) error {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT type FROM item WHERE id = ?",
 		itemID,
@@ -504,7 +504,7 @@ func (repo Repo) RemoveItem(ctx context.Context, itemID, orderID uint) error {
 	}
 
 	if itemType == order.Physical || itemType == order.Bundle {
-		_, err = repo.MySQL.ExecContext(
+		_, err = storage.MySQL.ExecContext(
 			ctx,
 
 			`UPDATE book SET 
@@ -521,7 +521,7 @@ func (repo Repo) RemoveItem(ctx context.Context, itemID, orderID uint) error {
 		}
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"DELETE FROM item WHERE id = ?",
 		itemID,
@@ -531,7 +531,7 @@ func (repo Repo) RemoveItem(ctx context.Context, itemID, orderID uint) error {
 		return err
 	}
 
-	err = repo.SetOrderTotal(ctx, orderID)
+	err = storage.SetOrderTotal(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -539,7 +539,7 @@ func (repo Repo) RemoveItem(ctx context.Context, itemID, orderID uint) error {
 	return nil
 }
 
-func (repo Repo) CreatePromoCode(ctx context.Context, promo order.Promo, userID string) error {
+func (storage Storage) CreatePromoCode(ctx context.Context, promo order.Promo, userID string) error {
 
 	if promo.Percentage == 0 {
 		return errors.New("percentage cannot be 0")
@@ -548,7 +548,7 @@ func (repo Repo) CreatePromoCode(ctx context.Context, promo order.Promo, userID 
 		return errors.New("limit cannot be 0")
 	}
 
-	result, err := repo.MySQL.ExecContext(
+	result, err := storage.MySQL.ExecContext(
 		ctx,
 
 		`INSERT INTO promo 
@@ -570,7 +570,7 @@ func (repo Repo) CreatePromoCode(ctx context.Context, promo order.Promo, userID 
 		return err
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO promo_user (promo_id , user_id) VALUES (?,?)",
 		promoID,
@@ -584,9 +584,9 @@ func (repo Repo) CreatePromoCode(ctx context.Context, promo order.Promo, userID 
 	return nil
 }
 
-func (repo Repo) DeletePromoCode(ctx context.Context, promoID uint) error {
+func (storage Storage) DeletePromoCode(ctx context.Context, promoID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		"DELETE FROM promo WHERE id = ?",
 		promoID,
@@ -596,7 +596,7 @@ func (repo Repo) DeletePromoCode(ctx context.Context, promoID uint) error {
 		return err
 	}
 	/*
-		_, err = repo.MySQL.ExecContext(
+		_, err = storage.MySQL.ExecContext(
 			ctx,
 			"DELETE FROM promo_user WHERE promo_id = ? AND user_id = ?",
 			promoID,
@@ -611,11 +611,11 @@ func (repo Repo) DeletePromoCode(ctx context.Context, promoID uint) error {
 	return nil
 }
 
-func (repo Repo) SetOrderStatus(ctx context.Context, status, orderID uint) error {
+func (storage Storage) SetOrderStatus(ctx context.Context, status, orderID uint) error {
 
 	var isShipmentOrder bool
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT 1 FROM item WHERE type != 0 AND order_id = ?`,
 		orderID,
@@ -628,7 +628,7 @@ func (repo Repo) SetOrderStatus(ctx context.Context, status, orderID uint) error
 
 	if status != order.StatusCreated && isShipmentOrder {
 
-		_, err := repo.MySQL.ExecContext(
+		_, err := storage.MySQL.ExecContext(
 			ctx,
 
 			`UPDATE orders AS o , (SELECT phone_id , address_id FROM orders WHERE id = ?) AS PA
@@ -647,7 +647,7 @@ func (repo Repo) SetOrderStatus(ctx context.Context, status, orderID uint) error
 
 	} else {
 
-		_, err := repo.MySQL.ExecContext(
+		_, err := storage.MySQL.ExecContext(
 			ctx,
 			"UPDATE orders SET status = ? WHERE id = ?",
 			status,
@@ -663,9 +663,9 @@ func (repo Repo) SetOrderStatus(ctx context.Context, status, orderID uint) error
 	return nil
 }
 
-func (repo Repo) GetOrderStatus(ctx context.Context, orderID uint) (uint, error) {
+func (storage Storage) GetOrderStatus(ctx context.Context, orderID uint) (uint, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT status FROM orders WHERE id = ?",
 		orderID,
@@ -680,9 +680,9 @@ func (repo Repo) GetOrderStatus(ctx context.Context, orderID uint) (uint, error)
 	return status, nil
 }
 
-func (repo Repo) SetOrderSTN(ctx context.Context, stn string, orderID uint) error {
+func (storage Storage) SetOrderSTN(ctx context.Context, stn string, orderID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		"UPDATE orders SET stn = ? WHERE id = ?",
 		stn,
@@ -696,9 +696,9 @@ func (repo Repo) SetOrderSTN(ctx context.Context, stn string, orderID uint) erro
 	return nil
 }
 
-func (repo Repo) SetOrderTotal(ctx context.Context, orderID uint) error {
+func (storage Storage) SetOrderTotal(ctx context.Context, orderID uint) error {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT book_id , type , quantity FROM item WHERE order_id = ?",
 		orderID,
@@ -722,7 +722,7 @@ func (repo Repo) SetOrderTotal(ctx context.Context, orderID uint) error {
 			return err
 		}
 
-		priceResult := repo.MySQL.QueryRowContext(
+		priceResult := storage.MySQL.QueryRowContext(
 			ctx,
 
 			`SELECT digital_price , digital_discount , physical_price , physical_discount 
@@ -744,12 +744,12 @@ func (repo Repo) SetOrderTotal(ctx context.Context, orderID uint) error {
 		items = append(items, i)
 	}
 
-	total, err := repo.CalculateTotal(ctx, items)
+	total, err := storage.CalculateTotal(ctx, items)
 	if err != nil {
 		return err
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"UPDATE orders SET total = ? WHERE id = ?",
 		total,
@@ -763,7 +763,7 @@ func (repo Repo) SetOrderTotal(ctx context.Context, orderID uint) error {
 	return nil
 }
 
-func (repo Repo) CalculateTotal(ctx context.Context, i []itemPrice) (uint, error) {
+func (storage Storage) CalculateTotal(ctx context.Context, i []itemPrice) (uint, error) {
 
 	var total uint = 0
 	for _, item := range i {
@@ -782,9 +782,9 @@ func (repo Repo) CalculateTotal(ctx context.Context, i []itemPrice) (uint, error
 	return total, nil
 }
 
-func (repo Repo) SetOrderPromo(ctx context.Context, orderID uint, promoCode, userID string) error {
+func (storage Storage) SetOrderPromo(ctx context.Context, orderID uint, promoCode, userID string) error {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 
 		`SELECT * FROM promo 
@@ -828,12 +828,12 @@ func (repo Repo) SetOrderPromo(ctx context.Context, orderID uint, promoCode, use
 		return errors.New("promo limit reached")
 	}
 
-	err = repo.UpdateOrderWithPromo(ctx, promo, orderID)
+	err = storage.UpdateOrderWithPromo(ctx, promo, orderID)
 	if err != nil {
 		return err
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"UPDATE promo SET promo.limit = promo.limit - 1 WHERE id = ?",
 		promo.ID,
@@ -846,9 +846,9 @@ func (repo Repo) SetOrderPromo(ctx context.Context, orderID uint, promoCode, use
 	return nil
 }
 
-func (repo Repo) UpdateOrderWithPromo(ctx context.Context, promo order.Promo, orderID uint) error {
+func (storage Storage) UpdateOrderWithPromo(ctx context.Context, promo order.Promo, orderID uint) error {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT total FROM orders WHERE id = ?",
 		orderID,
@@ -870,7 +870,7 @@ func (repo Repo) UpdateOrderWithPromo(ctx context.Context, promo order.Promo, or
 		total -= offer
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"UPDATE orders SET total = ?,promo_id = ? WHERE id = ?",
 		total,
@@ -885,9 +885,9 @@ func (repo Repo) UpdateOrderWithPromo(ctx context.Context, promo order.Promo, or
 	return nil
 }
 
-func (repo Repo) RemoveOrderPromo(ctx context.Context, orderID uint) error {
+func (storage Storage) RemoveOrderPromo(ctx context.Context, orderID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 
 		`UPDATE promo SET 
@@ -901,7 +901,7 @@ func (repo Repo) RemoveOrderPromo(ctx context.Context, orderID uint) error {
 		return err
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"UPDATE orders SET promo_id = NULL WHERE id = ?",
 		orderID,
@@ -911,7 +911,7 @@ func (repo Repo) RemoveOrderPromo(ctx context.Context, orderID uint) error {
 		return err
 	}
 
-	err = repo.SetOrderTotal(ctx, orderID)
+	err = storage.SetOrderTotal(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -919,9 +919,9 @@ func (repo Repo) RemoveOrderPromo(ctx context.Context, orderID uint) error {
 	return nil
 }
 
-func (repo Repo) DeleteOrder(ctx context.Context, orderID uint) error {
+func (storage Storage) DeleteOrder(ctx context.Context, orderID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		"DELETE FROM orders WHERE orderID = ?",
 		orderID,
@@ -934,9 +934,9 @@ func (repo Repo) DeleteOrder(ctx context.Context, orderID uint) error {
 	return nil
 }
 
-func (repo Repo) GetAllOrders(ctx context.Context) ([]order.Order, error) {
+func (storage Storage) GetAllOrders(ctx context.Context) ([]order.Order, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM orders",
 	)
@@ -984,9 +984,9 @@ func (repo Repo) GetAllOrders(ctx context.Context) ([]order.Order, error) {
 	return orders, nil
 }
 
-func (repo Repo) GetUserOrders(ctx context.Context, userID string) ([]order.Order, error) {
+func (storage Storage) GetUserOrders(ctx context.Context, userID string) ([]order.Order, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM orders WHERE user_id = ?",
 		userID,
@@ -1035,9 +1035,9 @@ func (repo Repo) GetUserOrders(ctx context.Context, userID string) ([]order.Orde
 	return orders, nil
 }
 
-func (repo Repo) GetDateOrders(ctx context.Context, date string) ([]order.Order, error) {
+func (storage Storage) GetDateOrders(ctx context.Context, date string) ([]order.Order, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM orders WHERE DATE(creation_date) = ?",
 		date,
@@ -1086,9 +1086,9 @@ func (repo Repo) GetDateOrders(ctx context.Context, date string) ([]order.Order,
 	return orders, nil
 }
 
-func (repo Repo) GetDateOrdersByStatus(ctx context.Context, date string, status uint) ([]order.Order, error) {
+func (storage Storage) GetDateOrdersByStatus(ctx context.Context, date string, status uint) ([]order.Order, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM orders WHERE DATE(creation_date) = ? AND status = ?",
 		date,
@@ -1138,9 +1138,9 @@ func (repo Repo) GetDateOrdersByStatus(ctx context.Context, date string, status 
 	return orders, nil
 }
 
-func (repo Repo) GetAllOrdersByStatus(ctx context.Context, status uint) ([]order.Order, error) {
+func (storage Storage) GetAllOrdersByStatus(ctx context.Context, status uint) ([]order.Order, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM orders WHERE status = ?",
 		status,
@@ -1189,9 +1189,9 @@ func (repo Repo) GetAllOrdersByStatus(ctx context.Context, status uint) ([]order
 	return orders, nil
 }
 
-func (repo Repo) GetUserOrdersByStatus(ctx context.Context, userID string, status uint) ([]order.Order, error) {
+func (storage Storage) GetUserOrdersByStatus(ctx context.Context, userID string, status uint) ([]order.Order, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM orders WHERE user_id = ? AND status = ?",
 		userID,
@@ -1241,9 +1241,9 @@ func (repo Repo) GetUserOrdersByStatus(ctx context.Context, userID string, statu
 	return orders, nil
 }
 
-func (repo Repo) GetAllPromos(ctx context.Context) ([]order.Promo, error) {
+func (storage Storage) GetAllPromos(ctx context.Context) ([]order.Promo, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM promo",
 	)
@@ -1275,9 +1275,9 @@ func (repo Repo) GetAllPromos(ctx context.Context) ([]order.Promo, error) {
 	return promos, nil
 }
 
-func (repo Repo) GetUserPromos(ctx context.Context, userID string) ([]order.Promo, error) {
+func (storage Storage) GetUserPromos(ctx context.Context, userID string) ([]order.Promo, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT * FROM promo WHERE id IN (SELECT promo_id FROM promo_user WHERE user_id = ?)",
 		userID,
@@ -1310,9 +1310,9 @@ func (repo Repo) GetUserPromos(ctx context.Context, userID string) ([]order.Prom
 	return promos, nil
 }
 
-func (repo Repo) GetPromoByOrder(ctx context.Context, orderID uint) (order.Promo, error) {
+func (storage Storage) GetPromoByOrder(ctx context.Context, orderID uint) (order.Promo, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT * FROM promo WHERE id = (SELECT promo_id FROM orders WHERE orders.id = ?)",
 		orderID,
@@ -1338,9 +1338,9 @@ func (repo Repo) GetPromoByOrder(ctx context.Context, orderID uint) (order.Promo
 	return p, nil
 }
 
-func (repo Repo) GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.OrderPaymentInfo, error) {
+func (storage Storage) GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.OrderPaymentInfo, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT total , user_id , phone_id FROM orders WHERE id = ? AND status = ?`,
 		orderID,
@@ -1361,7 +1361,7 @@ func (repo Repo) GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.O
 		return order.OrderPaymentInfo{}, err
 	}
 
-	result = repo.MySQL.QueryRowContext(
+	result = storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT email FROM user WHERE id = ?`,
 		uid,
@@ -1373,7 +1373,7 @@ func (repo Repo) GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.O
 		return order.OrderPaymentInfo{}, err
 	}
 
-	result = repo.MySQL.QueryRowContext(
+	result = storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT phonenumber FROM phone WHERE id = ?`,
 		uint(pid.Int64),
@@ -1388,9 +1388,9 @@ func (repo Repo) GetOrderPaymentInfo(ctx context.Context, orderID uint) (order.O
 	return info, nil
 }
 
-func (repo Repo) GetOrderTotal(ctx context.Context, orderID uint) (uint, error) {
+func (storage Storage) GetOrderTotal(ctx context.Context, orderID uint) (uint, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT total FROM orders WHERE id = ?`,
 		orderID,
@@ -1405,9 +1405,9 @@ func (repo Repo) GetOrderTotal(ctx context.Context, orderID uint) (uint, error) 
 	return total, nil
 }
 
-func (repo Repo) ZarinpalCreateOpenOrder(ctx context.Context, orderID uint, authority string) error {
+func (storage Storage) ZarinpalCreateOpenOrder(ctx context.Context, orderID uint, authority string) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		`INSERT INTO zarinpal (order_id , authority , code) VALUES (?,?,0)`,
 		orderID,
@@ -1420,9 +1420,9 @@ func (repo Repo) ZarinpalCreateOpenOrder(ctx context.Context, orderID uint, auth
 	return nil
 }
 
-func (repo Repo) ZarinpalDoesAuthorityExist(ctx context.Context, authority string) (bool, error) {
+func (storage Storage) ZarinpalDoesAuthorityExist(ctx context.Context, authority string) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT 1 FROM zarinpal WHERE authority = ?`,
 		authority,
@@ -1437,9 +1437,9 @@ func (repo Repo) ZarinpalDoesAuthorityExist(ctx context.Context, authority strin
 	return exist, nil
 }
 
-func (repo Repo) ZarinpalGetOrderByAuthority(ctx context.Context, authority string) (order.ZarinpalOrder, error) {
+func (storage Storage) ZarinpalGetOrderByAuthority(ctx context.Context, authority string) (order.ZarinpalOrder, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		`SELECT * FROM zarinpal WHERE authority = ?`,
 		authority,
@@ -1465,9 +1465,9 @@ func (repo Repo) ZarinpalGetOrderByAuthority(ctx context.Context, authority stri
 	return zOrder, nil
 }
 
-func (repo Repo) ZarinpalSetOrderPayment(ctx context.Context, zarinpalOrderID uint, authority string, refID, code int) error {
+func (storage Storage) ZarinpalSetOrderPayment(ctx context.Context, zarinpalOrderID uint, authority string, refID, code int) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		`UPDATE zarinpal SET ref_id = ? , code = ? WHERE id = ? AND authority = ?`,
 		refID,
@@ -1482,9 +1482,9 @@ func (repo Repo) ZarinpalSetOrderPayment(ctx context.Context, zarinpalOrderID ui
 	return nil
 }
 
-func (repo Repo) SetOrderReceiptDate(ctx context.Context, orderID uint) error {
+func (storage Storage) SetOrderReceiptDate(ctx context.Context, orderID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		`UPDATE orders SET receipt_date = ? WHERE id = ?`,
 		time.Now().Format("2006-01-02 15:04:05"),

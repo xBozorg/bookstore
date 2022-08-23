@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	eo "github.com/XBozorg/bookstore/entity/order"
 	"github.com/XBozorg/bookstore/usecase/order"
@@ -133,33 +133,33 @@ func checkStatusForSTN(ctx context.Context, repo order.Repository, orderID uint)
 	}
 }
 
-func ValidateCreateEmptyOrder(repo repository.Repo) order.ValidateCreateEmptyOrder {
+func ValidateCreateEmptyOrder(storage repository.Storage) order.ValidateCreateEmptyOrder {
 	return func(ctx context.Context, req dto.CreateEmptyOrderRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateCheckOpenOrder(repo repository.Repo) order.ValidateCheckOpenOrder {
+func ValidateCheckOpenOrder(storage repository.Storage) order.ValidateCheckOpenOrder {
 	return func(ctx context.Context, req dto.CheckOpenOrderRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateAddItem(repo repository.Repo) order.ValidateAddItem {
+func ValidateAddItem(storage repository.Storage) order.ValidateAddItem {
 	return func(ctx context.Context, req dto.AddItemRequest) error {
 
 		if errUserID := validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		); errUserID != nil {
 			return errUserID
 		}
 
 		if errItem := validation.ValidateStruct(&req.Item,
-			validation.Field(&req.Item.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
+			validation.Field(&req.Item.BookID, validation.Required, validation.By(doesBookExist(ctx, storage))),
 			validation.Field(&req.Item.Type, validation.NotNil, validation.Min(uint(0)), validation.Max(uint(2))),
 			validation.Field(&req.Item.Quantity, validation.Required, validation.Min(uint(0))),
 		); errItem != nil {
@@ -170,61 +170,61 @@ func ValidateAddItem(repo repository.Repo) order.ValidateAddItem {
 	}
 }
 
-func ValidateIncreaseQuantity(repo repository.Repo) order.ValidateIncreaseQuantity {
+func ValidateIncreaseQuantity(storage repository.Storage) order.ValidateIncreaseQuantity {
 	return func(ctx context.Context, req dto.IncreaseQuantityRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
-			validation.Field(&req.ItemID, validation.Required, validation.By(doesItemExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, storage))),
+			validation.Field(&req.ItemID, validation.Required, validation.By(doesItemExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDecreaseQuantity(repo repository.Repo) order.ValidateDecreaseQuantity {
+func ValidateDecreaseQuantity(storage repository.Storage) order.ValidateDecreaseQuantity {
 	return func(ctx context.Context, req dto.DecreaseQuantityRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
-			validation.Field(&req.ItemID, validation.Required, validation.By(doesItemExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, storage))),
+			validation.Field(&req.ItemID, validation.Required, validation.By(doesItemExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetOrderItems(repo repository.Repo) order.ValidateGetOrderItems {
+func ValidateGetOrderItems(storage repository.Storage) order.ValidateGetOrderItems {
 	return func(ctx context.Context, req dto.GetOrderItemsRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetOrderPaymentInfo(repo repository.Repo) order.ValidateGetOrderPaymentInfo {
+func ValidateGetOrderPaymentInfo(storage repository.Storage) order.ValidateGetOrderPaymentInfo {
 	return func(ctx context.Context, req dto.GetOrderPaymentInfoRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo)), validation.By(doesOrderOpen(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage)), validation.By(doesOrderOpen(ctx, storage))),
 		)
 	}
 }
 
-func ValidateRemoveItem(repo repository.Repo) order.ValidateRemoveItem {
+func ValidateRemoveItem(storage repository.Storage) order.ValidateRemoveItem {
 	return func(ctx context.Context, req dto.RemoveItemRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
-			validation.Field(&req.ItemID, validation.Required, validation.By(doesItemExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, storage))),
+			validation.Field(&req.ItemID, validation.Required, validation.By(doesItemExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateCreatePromoCode(repo repository.Repo) order.ValidateCreatePromoCode {
+func ValidateCreatePromoCode(storage repository.Storage) order.ValidateCreatePromoCode {
 	return func(ctx context.Context, req dto.CreatePromoCodeRequest) error {
 
 		if errUserID := validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		); errUserID != nil {
 			return errUserID
 		}
 
 		if errPromo := validation.ValidateStruct(&req.Promo,
 			validation.Field(&req.Promo.Code, validation.Required, is.Alphanumeric, validation.Length(3, 20)),
-			validation.Field(&req.Promo.Expiration, validation.By(isValidDate(ctx, repo))),
+			validation.Field(&req.Promo.Expiration, validation.By(isValidDate(ctx, storage))),
 			validation.Field(&req.Promo.Limit, validation.Required, validation.Min(uint(0))),
 			validation.Field(&req.Promo.Percentage, validation.Required, validation.Min(uint(0)), validation.Max(uint(100))),
 			validation.Field(&req.Promo.MaxPrice, validation.Min(uint(0))),
@@ -236,139 +236,139 @@ func ValidateCreatePromoCode(repo repository.Repo) order.ValidateCreatePromoCode
 	}
 }
 
-func ValidateDeletePromoCode(repo repository.Repo) order.ValidateDeletePromoCode {
+func ValidateDeletePromoCode(storage repository.Storage) order.ValidateDeletePromoCode {
 	return func(ctx context.Context, req dto.DeletePromoCodeRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.PromoID, validation.Required, validation.By(doesPromoExist(ctx, repo))),
+			validation.Field(&req.PromoID, validation.Required, validation.By(doesPromoExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateSetOrderStatus(repo repository.Repo) order.ValidateSetOrderStatus {
+func ValidateSetOrderStatus(storage repository.Storage) order.ValidateSetOrderStatus {
 	return func(ctx context.Context, req dto.SetOrderStatusRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
-			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
+			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, storage))),
 		)
 	}
 }
 
-func ValidateSetOrderSTN(repo repository.Repo) order.ValidateSetOrderSTN {
+func ValidateSetOrderSTN(storage repository.Storage) order.ValidateSetOrderSTN {
 	return func(ctx context.Context, req dto.SetOrderSTNRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
-			validation.Field(&req.STN, validation.Required, validation.Length(10, 50), validation.By(checkStatusForSTN(ctx, repo, req.OrderID))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
+			validation.Field(&req.STN, validation.Required, validation.Length(10, 50), validation.By(checkStatusForSTN(ctx, storage, req.OrderID))),
 		)
 	}
 }
 
-func ValidateSetOrderPromo(repo repository.Repo) order.ValidateSetOrderPromo {
+func ValidateSetOrderPromo(storage repository.Storage) order.ValidateSetOrderPromo {
 	return func(ctx context.Context, req dto.SetOrderPromoRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
-			validation.Field(&req.PromoCode, validation.Required, is.Alphanumeric, validation.Length(3, 20), validation.By(doesPromoCodeExist(ctx, repo, req.UserID))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, storage))),
+			validation.Field(&req.PromoCode, validation.Required, is.Alphanumeric, validation.Length(3, 20), validation.By(doesPromoCodeExist(ctx, storage, req.UserID))),
 		)
 	}
 }
 
-func ValidateRemoveOrderPromo(repo repository.Repo) order.ValidateRemoveOrderPromo {
+func ValidateRemoveOrderPromo(storage repository.Storage) order.ValidateRemoveOrderPromo {
 	return func(ctx context.Context, req dto.RemoveOrderPromoRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderOpen(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteOrder(repo repository.Repo) order.ValidateDeleteOrder {
+func ValidateDeleteOrder(storage repository.Storage) order.ValidateDeleteOrder {
 	return func(ctx context.Context, req dto.DeleteOrderRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetAllOrdersByStatus(repo repository.Repo) order.ValidateGetAllOrdersByStatus {
+func ValidateGetAllOrdersByStatus(storage repository.Storage) order.ValidateGetAllOrdersByStatus {
 	return func(ctx context.Context, req dto.GetAllOrdersByStatusRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, repo))),
+			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetUserOrders(repo repository.Repo) order.ValidateGetUserOrders {
+func ValidateGetUserOrders(storage repository.Storage) order.ValidateGetUserOrders {
 	return func(ctx context.Context, req dto.GetUserOrdersRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetUserOrdersByStatus(repo repository.Repo) order.ValidateGetUserOrdersByStatus {
+func ValidateGetUserOrdersByStatus(storage repository.Storage) order.ValidateGetUserOrdersByStatus {
 	return func(ctx context.Context, req dto.GetUserOrdersByStatusRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
-			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
+			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetDateOrders(repo repository.Repo) order.ValidateGetDateOrders {
+func ValidateGetDateOrders(storage repository.Storage) order.ValidateGetDateOrders {
 	return func(ctx context.Context, req dto.GetDateOrdersRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.Date, validation.Required, validation.By(isValidDate(ctx, repo))),
+			validation.Field(&req.Date, validation.Required, validation.By(isValidDate(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetDateOrdersByStatus(repo repository.Repo) order.ValidateGetDateOrdersByStatus {
+func ValidateGetDateOrdersByStatus(storage repository.Storage) order.ValidateGetDateOrdersByStatus {
 	return func(ctx context.Context, req dto.GetDateOrdersByStatusRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.Date, validation.Required, validation.By(isValidDate(ctx, repo))),
-			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, repo))),
+			validation.Field(&req.Date, validation.Required, validation.By(isValidDate(ctx, storage))),
+			validation.Field(&req.Status, validation.Required, validation.By(isValidStatus(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetUserPromos(repo repository.Repo) order.ValidateGetUserPromos {
+func ValidateGetUserPromos(storage repository.Storage) order.ValidateGetUserPromos {
 	return func(ctx context.Context, req dto.GetUserPromosRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetPromoByOrder(repo repository.Repo) order.ValidateGetPromoByOrder {
+func ValidateGetPromoByOrder(storage repository.Storage) order.ValidateGetPromoByOrder {
 	return func(ctx context.Context, req dto.GetPromoByOrderRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateSetOrderPhone(repo repository.Repo) order.ValidateSetOrderPhone {
+func ValidateSetOrderPhone(storage repository.Storage) order.ValidateSetOrderPhone {
 	return func(ctx context.Context, req dto.SetOrderPhoneRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
-			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
+			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateSetOrderAddress(repo repository.Repo) order.ValidateSetOrderAddress {
+func ValidateSetOrderAddress(storage repository.Storage) order.ValidateSetOrderAddress {
 	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
-			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
+			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateZarinpalPayment(repo repository.Repo) order.ValidateSetOrderAddress {
+func ValidateZarinpalPayment(storage repository.Storage) order.ValidateSetOrderAddress {
 	return func(ctx context.Context, req dto.SetOrderAddressRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, repo))),
-			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, repo))),
+			validation.Field(&req.OrderID, validation.Required, validation.By(doesOrderExist(ctx, storage))),
+			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, storage))),
 		)
 	}
 }

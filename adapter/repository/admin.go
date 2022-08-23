@@ -7,9 +7,9 @@ import (
 	"github.com/XBozorg/bookstore/entity/admin"
 )
 
-func (repo Repo) LoginAdmin(ctx context.Context, email, password string) (admin.Admin, error) {
+func (storage Storage) LoginAdmin(ctx context.Context, email, password string) (admin.Admin, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id, email, password, phonenumber FROM admin WHERE email = ?",
 		email,
@@ -37,9 +37,9 @@ func (repo Repo) LoginAdmin(ctx context.Context, email, password string) (admin.
 	return admin.Admin{}, errors.New("password does not match")
 }
 
-func (repo Repo) DoesAdminExist(ctx context.Context, adminID string) (bool, error) {
+func (storage Storage) DoesAdminExist(ctx context.Context, adminID string) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM admin WHERE id = ?)",
 		adminID,
@@ -54,9 +54,9 @@ func (repo Repo) DoesAdminExist(ctx context.Context, adminID string) (bool, erro
 	return doesExist, nil
 }
 
-func (repo Repo) GetAdmin(ctx context.Context, adminID string) (admin.Admin, error) {
+func (storage Storage) GetAdmin(ctx context.Context, adminID string) (admin.Admin, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id, email, phonenumber FROM admin WHERE id = ?",
 		adminID,
@@ -76,9 +76,9 @@ func (repo Repo) GetAdmin(ctx context.Context, adminID string) (admin.Admin, err
 	return a, nil
 }
 
-func (repo Repo) GetAdmins(ctx context.Context) ([]admin.Admin, error) {
+func (storage Storage) GetAdmins(ctx context.Context) ([]admin.Admin, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT id, email, phonenumber FROM admin",
 	)

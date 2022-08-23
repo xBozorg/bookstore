@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/admin"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -27,15 +27,15 @@ func doesAdminExist(ctx context.Context, repo admin.ValidatorRepo) validation.Ru
 	}
 }
 
-func ValidateGetAdmin(repo repository.Repo) admin.ValidateGetAdmin {
+func ValidateGetAdmin(storage repository.Storage) admin.ValidateGetAdmin {
 	return func(ctx context.Context, req dto.GetAdminRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.AdminId, is.UUIDv4, validation.By(doesAdminExist(ctx, repo))),
+			validation.Field(&req.AdminId, is.UUIDv4, validation.By(doesAdminExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateLoginAdmin(repo repository.Repo) admin.ValidateLoginAdmin {
+func ValidateLoginAdmin(storage repository.Storage) admin.ValidateLoginAdmin {
 	return func(ctx context.Context, req dto.LoginAdminRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Email, validation.Required, is.Email),

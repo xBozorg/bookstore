@@ -11,17 +11,21 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-type Repo struct {
+type Storage struct {
 	MySQL *sql.DB
 	Redis *redis.Client
 }
 
-func (r *Repo) Close() {
-	r.MySQL.Close()
-	r.Redis.Close()
+func (s *Storage) Close() {
+	s.MySQL.Close()
+	s.Redis.Close()
 }
 
-func (r *Repo) mysqlConnect(conf *config.MySQLConfig) error {
+var (
+	Repo Storage
+)
+
+func (s *Storage) mysqlConnect(conf *config.MySQLConfig) error {
 	cfg := mysql.Config{
 		User:   conf.User,
 		Passwd: conf.Pass,
@@ -38,11 +42,11 @@ func (r *Repo) mysqlConnect(conf *config.MySQLConfig) error {
 		return err
 	}
 
-	r.MySQL = mysqldb
+	s.MySQL = mysqldb
 	return nil
 }
 
-func (r *Repo) redisConnect(conf *config.RedisConfig) error {
+func (s *Storage) redisConnect(conf *config.RedisConfig) error {
 	client := redis.NewClient(&redis.Options{
 		Addr:     conf.Address,
 		Password: conf.Pass,
@@ -58,18 +62,18 @@ func (r *Repo) redisConnect(conf *config.RedisConfig) error {
 		return errors.New("redis connection - pong error")
 	}
 
-	r.Redis = client
+	s.Redis = client
 	return nil
 }
 
-func (r *Repo) Connect(conf *config.Config) error {
+func (s *Storage) Connect(conf *config.Config) error {
 
-	err := r.mysqlConnect(conf.GetMySQlConfig())
+	err := s.mysqlConnect(conf.GetMySQlConfig())
 	if err != nil {
 		return err
 	}
 
-	err = r.redisConnect(conf.GetRedisConfig())
+	err = s.redisConnect(conf.GetRedisConfig())
 	if err != nil {
 		return err
 	}

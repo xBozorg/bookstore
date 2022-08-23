@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/book"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -108,7 +108,7 @@ func doesUserAccessBook(ctx context.Context, repo book.ValidatorRepo, userID str
 	}
 }
 
-func ValidateAddAuthor(repo repository.Repo) book.ValidateAddAuthor {
+func ValidateAddAuthor(storage repository.Storage) book.ValidateAddAuthor {
 	return func(ctx context.Context, req dto.AddAuthorRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Name, validation.Required, is.ASCII, validation.Length(4, 100)),
@@ -116,23 +116,23 @@ func ValidateAddAuthor(repo repository.Repo) book.ValidateAddAuthor {
 	}
 }
 
-func ValidateGetAuthor(repo repository.Repo) book.ValidateGetAuthor {
+func ValidateGetAuthor(storage repository.Storage) book.ValidateGetAuthor {
 	return func(ctx context.Context, req dto.GetAuthorRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, repo))),
+			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteAuthor(repo repository.Repo) book.ValidateDeleteAuthor {
+func ValidateDeleteAuthor(storage repository.Storage) book.ValidateDeleteAuthor {
 	return func(ctx context.Context, req dto.DeleteAuthorRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, repo))),
+			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateAddPublisher(repo repository.Repo) book.ValidateAddPublisher {
+func ValidateAddPublisher(storage repository.Storage) book.ValidateAddPublisher {
 	return func(ctx context.Context, req dto.AddPublisherRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Name, validation.Required, is.ASCII, validation.Length(1, 100)),
@@ -140,23 +140,23 @@ func ValidateAddPublisher(repo repository.Repo) book.ValidateAddPublisher {
 	}
 }
 
-func ValidateGetPublisher(repo repository.Repo) book.ValidateGetPublisher {
+func ValidateGetPublisher(storage repository.Storage) book.ValidateGetPublisher {
 	return func(ctx context.Context, req dto.GetPublisherRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, repo))),
+			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeletePublisher(repo repository.Repo) book.ValidateDeletePublisher {
+func ValidateDeletePublisher(storage repository.Storage) book.ValidateDeletePublisher {
 	return func(ctx context.Context, req dto.DeletePublisherRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, repo))),
+			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateAddTopic(repo repository.Repo) book.ValidateAddTopic {
+func ValidateAddTopic(storage repository.Storage) book.ValidateAddTopic {
 	return func(ctx context.Context, req dto.AddTopicRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Name, validation.Required, is.Alpha, validation.Length(2, 30)),
@@ -164,23 +164,23 @@ func ValidateAddTopic(repo repository.Repo) book.ValidateAddTopic {
 	}
 }
 
-func ValidateGetTopic(repo repository.Repo) book.ValidateGetTopic {
+func ValidateGetTopic(storage repository.Storage) book.ValidateGetTopic {
 	return func(ctx context.Context, req dto.GetTopicRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, repo))),
+			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteTopic(repo repository.Repo) book.ValidateDeleteTopic {
+func ValidateDeleteTopic(storage repository.Storage) book.ValidateDeleteTopic {
 	return func(ctx context.Context, req dto.DeleteTopicRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, repo))),
+			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateAddLanguage(repo repository.Repo) book.ValidateAddLanguage {
+func ValidateAddLanguage(storage repository.Storage) book.ValidateAddLanguage {
 	return func(ctx context.Context, req dto.AddLanguageRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.LangCode, validation.Required, is.Alpha, validation.Length(2, 2)),
@@ -188,23 +188,23 @@ func ValidateAddLanguage(repo repository.Repo) book.ValidateAddLanguage {
 	}
 }
 
-func ValidateGetLanguage(repo repository.Repo) book.ValidateGetLanguage {
+func ValidateGetLanguage(storage repository.Storage) book.ValidateGetLanguage {
 	return func(ctx context.Context, req dto.GetLanguageRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, repo))),
+			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteLanguage(repo repository.Repo) book.ValidateDeleteLanguage {
+func ValidateDeleteLanguage(storage repository.Storage) book.ValidateDeleteLanguage {
 	return func(ctx context.Context, req dto.DeleteLanguageRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, repo))),
+			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateAddBook(repo repository.Repo) book.ValidateAddBook {
+func ValidateAddBook(storage repository.Storage) book.ValidateAddBook {
 	return func(ctx context.Context, req dto.AddBookRequest) error {
 		if errBook := validation.ValidateStruct(&req.Book,
 			validation.Field(&req.Book.Title, validation.Required, is.ASCII, validation.Length(1, 100)),
@@ -256,18 +256,18 @@ func ValidateAddBook(repo repository.Repo) book.ValidateAddBook {
 	}
 }
 
-func ValidateGetBook(repo repository.Repo) book.ValidateGetBook {
+func ValidateGetBook(storage repository.Storage) book.ValidateGetBook {
 	return func(ctx context.Context, req dto.GetBookRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
+			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateEditBook(repo repository.Repo) book.ValidateEditBook {
+func ValidateEditBook(storage repository.Storage) book.ValidateEditBook {
 	return func(ctx context.Context, req dto.EditBookRequest) error {
 		if errBook := validation.ValidateStruct(&req.Book,
-			validation.Field(&req.Book.ID, validation.Required, validation.By(doesBookExist(ctx, repo))),
+			validation.Field(&req.Book.ID, validation.Required, validation.By(doesBookExist(ctx, storage))),
 			validation.Field(&req.Book.Title, validation.Required, is.ASCII, validation.Length(1, 100)),
 			validation.Field(&req.Book.ISBN, validation.Required, is.ISBN13),
 			validation.Field(&req.Book.Pages, validation.Required),
@@ -317,70 +317,70 @@ func ValidateEditBook(repo repository.Repo) book.ValidateEditBook {
 	}
 }
 
-func ValidateSetBookDiscount(repo repository.Repo) book.ValidateSetBookDiscount {
+func ValidateSetBookDiscount(storage repository.Storage) book.ValidateSetBookDiscount {
 	return func(ctx context.Context, req dto.SetBookDiscountRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
+			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, storage))),
 			validation.Field(&req.Digital, validation.Max(uint(100))),
 			validation.Field(&req.Physical, validation.Max(uint(100))),
 		)
 	}
 }
 
-func ValidateGetAuthorBooks(repo repository.Repo) book.ValidateGetAuthorBooks {
+func ValidateGetAuthorBooks(storage repository.Storage) book.ValidateGetAuthorBooks {
 	return func(ctx context.Context, req dto.GetAuthorBooksRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, repo))),
+			validation.Field(&req.AuthorID, validation.Required, validation.By(doesAuthorExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetPublisherBooks(repo repository.Repo) book.ValidateGetPublisherBooks {
+func ValidateGetPublisherBooks(storage repository.Storage) book.ValidateGetPublisherBooks {
 	return func(ctx context.Context, req dto.GetPublisherBooksRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, repo))),
+			validation.Field(&req.PublisherID, validation.Required, validation.By(doesPublisherExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetTopicBooks(repo repository.Repo) book.ValidateGetTopicBooks {
+func ValidateGetTopicBooks(storage repository.Storage) book.ValidateGetTopicBooks {
 	return func(ctx context.Context, req dto.GetTopicBooksRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, repo))),
+			validation.Field(&req.TopicID, validation.Required, validation.By(doesTopicExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetLangBooks(repo repository.Repo) book.ValidateGetLangBooks {
+func ValidateGetLangBooks(storage repository.Storage) book.ValidateGetLangBooks {
 	return func(ctx context.Context, req dto.GetLangBooksRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, repo))),
+			validation.Field(&req.LangID, validation.Required, validation.By(doesLangExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteBook(repo repository.Repo) book.ValidateDeleteBook {
+func ValidateDeleteBook(storage repository.Storage) book.ValidateDeleteBook {
 	return func(ctx context.Context, req dto.DeleteBookRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, repo))),
+			validation.Field(&req.BookID, validation.Required, validation.By(doesBookExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetUserDigitalBooks(repo repository.Repo) book.ValidateGetUserDigitalBooks {
+func ValidateGetUserDigitalBooks(storage repository.Storage) book.ValidateGetUserDigitalBooks {
 	return func(ctx context.Context, req dto.GetUserDigitalBooksRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDownloadBook(repo repository.Repo) book.ValidateDownloadBook {
+func ValidateDownloadBook(storage repository.Storage) book.ValidateDownloadBook {
 	return func(ctx context.Context, req dto.DownloadBookRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.BookID, validation.Required,
-				validation.By(doesBookExist(ctx, repo)),
-				validation.By(doesUserAccessBook(ctx, repo, req.UserID))),
+				validation.By(doesBookExist(ctx, storage)),
+				validation.By(doesUserAccessBook(ctx, storage, req.UserID))),
 
 			validation.Field(&req.Path, is.ASCII, validation.Length(10, 150)),
 		)

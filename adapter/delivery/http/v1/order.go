@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/order"
 	"github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 )
 
-func AddItem(repo repository.Repo, validator order.ValidateAddItem) echo.HandlerFunc {
+func AddItem(storage repository.Storage, validator order.ValidateAddItem) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.AddItemRequest{}
 
@@ -41,7 +41,7 @@ func AddItem(repo repository.Repo, validator order.ValidateAddItem) echo.Handler
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).AddItem(c.Request().Context(), req)
+		resp, err := order.New(storage).AddItem(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -59,7 +59,7 @@ func AddItem(repo repository.Repo, validator order.ValidateAddItem) echo.Handler
 	}
 }
 
-func IncreaseQuantity(repo repository.Repo, validator order.ValidateIncreaseQuantity) echo.HandlerFunc {
+func IncreaseQuantity(storage repository.Storage, validator order.ValidateIncreaseQuantity) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.IncreaseQuantityRequest{}
 
@@ -92,7 +92,7 @@ func IncreaseQuantity(repo repository.Repo, validator order.ValidateIncreaseQuan
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).IncreaseQuantity(c.Request().Context(), req)
+		resp, err := order.New(storage).IncreaseQuantity(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -106,7 +106,7 @@ func IncreaseQuantity(repo repository.Repo, validator order.ValidateIncreaseQuan
 	}
 }
 
-func DecreaseQuantity(repo repository.Repo, validator order.ValidateDecreaseQuantity) echo.HandlerFunc {
+func DecreaseQuantity(storage repository.Storage, validator order.ValidateDecreaseQuantity) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DecreaseQuantityRequest{}
 
@@ -139,7 +139,7 @@ func DecreaseQuantity(repo repository.Repo, validator order.ValidateDecreaseQuan
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).DecreaseQuantity(c.Request().Context(), req)
+		resp, err := order.New(storage).DecreaseQuantity(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -153,7 +153,7 @@ func DecreaseQuantity(repo repository.Repo, validator order.ValidateDecreaseQuan
 	}
 }
 
-func RemoveItem(repo repository.Repo, validator order.ValidateRemoveItem) echo.HandlerFunc {
+func RemoveItem(storage repository.Storage, validator order.ValidateRemoveItem) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.RemoveItemRequest{}
 
@@ -186,7 +186,7 @@ func RemoveItem(repo repository.Repo, validator order.ValidateRemoveItem) echo.H
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).RemoveItem(c.Request().Context(), req)
+		resp, err := order.New(storage).RemoveItem(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -200,7 +200,7 @@ func RemoveItem(repo repository.Repo, validator order.ValidateRemoveItem) echo.H
 	}
 }
 
-func GetOrderItems(repo repository.Repo, validator order.ValidateGetOrderItems) echo.HandlerFunc {
+func GetOrderItems(storage repository.Storage, validator order.ValidateGetOrderItems) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetOrderItemsRequest{}
 
@@ -223,7 +223,7 @@ func GetOrderItems(repo repository.Repo, validator order.ValidateGetOrderItems) 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetOrderItems(c.Request().Context(), req)
+		resp, err := order.New(storage).GetOrderItems(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -237,7 +237,7 @@ func GetOrderItems(repo repository.Repo, validator order.ValidateGetOrderItems) 
 	}
 }
 
-func CreatePromoCode(repo repository.Repo, validator order.ValidateCreatePromoCode) echo.HandlerFunc {
+func CreatePromoCode(storage repository.Storage, validator order.ValidateCreatePromoCode) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.CreatePromoCodeRequest{}
 
@@ -254,7 +254,7 @@ func CreatePromoCode(repo repository.Repo, validator order.ValidateCreatePromoCo
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).CreatePromoCode(c.Request().Context(), req)
+		resp, err := order.New(storage).CreatePromoCode(c.Request().Context(), req)
 		if err != nil {
 
 			if err.Error() == "percentage cannot be 0" {
@@ -275,7 +275,7 @@ func CreatePromoCode(repo repository.Repo, validator order.ValidateCreatePromoCo
 	}
 }
 
-func DeletePromoCode(repo repository.Repo, validator order.ValidateDeletePromoCode) echo.HandlerFunc {
+func DeletePromoCode(storage repository.Storage, validator order.ValidateDeletePromoCode) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePromoCodeRequest{}
 
@@ -294,7 +294,7 @@ func DeletePromoCode(repo repository.Repo, validator order.ValidateDeletePromoCo
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).DeletePromoCode(c.Request().Context(), req)
+		resp, err := order.New(storage).DeletePromoCode(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -303,7 +303,7 @@ func DeletePromoCode(repo repository.Repo, validator order.ValidateDeletePromoCo
 	}
 }
 
-func SetOrderStatus(repo repository.Repo, validator order.ValidateSetOrderStatus) echo.HandlerFunc {
+func SetOrderStatus(storage repository.Storage, validator order.ValidateSetOrderStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderStatusRequest{}
 
@@ -330,7 +330,7 @@ func SetOrderStatus(repo repository.Repo, validator order.ValidateSetOrderStatus
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).SetOrderStatus(c.Request().Context(), req)
+		resp, err := order.New(storage).SetOrderStatus(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -339,7 +339,7 @@ func SetOrderStatus(repo repository.Repo, validator order.ValidateSetOrderStatus
 	}
 }
 
-func SetOrderSTN(repo repository.Repo, validator order.ValidateSetOrderSTN) echo.HandlerFunc {
+func SetOrderSTN(storage repository.Storage, validator order.ValidateSetOrderSTN) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderSTNRequest{}
 
@@ -366,7 +366,7 @@ func SetOrderSTN(repo repository.Repo, validator order.ValidateSetOrderSTN) echo
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).SetOrderSTN(c.Request().Context(), req)
+		resp, err := order.New(storage).SetOrderSTN(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -375,7 +375,7 @@ func SetOrderSTN(repo repository.Repo, validator order.ValidateSetOrderSTN) echo
 	}
 }
 
-func SetOrderPromo(repo repository.Repo, validator order.ValidateSetOrderPromo) echo.HandlerFunc {
+func SetOrderPromo(storage repository.Storage, validator order.ValidateSetOrderPromo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderPromoRequest{}
 
@@ -412,7 +412,7 @@ func SetOrderPromo(repo repository.Repo, validator order.ValidateSetOrderPromo) 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).SetOrderPromo(c.Request().Context(), req)
+		resp, err := order.New(storage).SetOrderPromo(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -426,7 +426,7 @@ func SetOrderPromo(repo repository.Repo, validator order.ValidateSetOrderPromo) 
 	}
 }
 
-func RemoveOrderPromo(repo repository.Repo, validator order.ValidateRemoveOrderPromo) echo.HandlerFunc {
+func RemoveOrderPromo(storage repository.Storage, validator order.ValidateRemoveOrderPromo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.RemoveOrderPromoRequest{}
 
@@ -449,7 +449,7 @@ func RemoveOrderPromo(repo repository.Repo, validator order.ValidateRemoveOrderP
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).RemoveOrderPromo(c.Request().Context(), req)
+		resp, err := order.New(storage).RemoveOrderPromo(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -463,7 +463,7 @@ func RemoveOrderPromo(repo repository.Repo, validator order.ValidateRemoveOrderP
 	}
 }
 
-func DeleteOrder(repo repository.Repo, validator order.ValidateDeleteOrder) echo.HandlerFunc {
+func DeleteOrder(storage repository.Storage, validator order.ValidateDeleteOrder) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteOrderRequest{}
 
@@ -486,7 +486,7 @@ func DeleteOrder(repo repository.Repo, validator order.ValidateDeleteOrder) echo
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).DeleteOrder(c.Request().Context(), req)
+		resp, err := order.New(storage).DeleteOrder(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -500,11 +500,11 @@ func DeleteOrder(repo repository.Repo, validator order.ValidateDeleteOrder) echo
 	}
 }
 
-func GetAllOrders(repo repository.Repo) echo.HandlerFunc {
+func GetAllOrders(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllOrdersRequest{}
 
-		resp, err := order.New(repo).GetAllOrders(c.Request().Context(), req)
+		resp, err := order.New(storage).GetAllOrders(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -518,7 +518,7 @@ func GetAllOrders(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func GetAllOrdersByStatus(repo repository.Repo, validator order.ValidateGetAllOrdersByStatus) echo.HandlerFunc {
+func GetAllOrdersByStatus(storage repository.Storage, validator order.ValidateGetAllOrdersByStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllOrdersByStatusRequest{}
 
@@ -537,7 +537,7 @@ func GetAllOrdersByStatus(repo repository.Repo, validator order.ValidateGetAllOr
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetAllOrdersByStatus(c.Request().Context(), req)
+		resp, err := order.New(storage).GetAllOrdersByStatus(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -551,7 +551,7 @@ func GetAllOrdersByStatus(repo repository.Repo, validator order.ValidateGetAllOr
 	}
 }
 
-func GetUserOrders(repo repository.Repo, validator order.ValidateGetUserOrders) echo.HandlerFunc {
+func GetUserOrders(storage repository.Storage, validator order.ValidateGetUserOrders) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserOrdersRequest{}
 
@@ -567,7 +567,7 @@ func GetUserOrders(repo repository.Repo, validator order.ValidateGetUserOrders) 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetUserOrders(c.Request().Context(), req)
+		resp, err := order.New(storage).GetUserOrders(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -581,7 +581,7 @@ func GetUserOrders(repo repository.Repo, validator order.ValidateGetUserOrders) 
 	}
 }
 
-func GetUserOrdersByStatus(repo repository.Repo, validator order.ValidateGetUserOrdersByStatus) echo.HandlerFunc {
+func GetUserOrdersByStatus(storage repository.Storage, validator order.ValidateGetUserOrdersByStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserOrdersByStatusRequest{}
 
@@ -607,7 +607,7 @@ func GetUserOrdersByStatus(repo repository.Repo, validator order.ValidateGetUser
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetUserOrdersByStatus(c.Request().Context(), req)
+		resp, err := order.New(storage).GetUserOrdersByStatus(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -621,7 +621,7 @@ func GetUserOrdersByStatus(repo repository.Repo, validator order.ValidateGetUser
 	}
 }
 
-func GetDateOrders(repo repository.Repo, validator order.ValidateGetDateOrders) echo.HandlerFunc {
+func GetDateOrders(storage repository.Storage, validator order.ValidateGetDateOrders) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetDateOrdersRequest{}
 
@@ -638,7 +638,7 @@ func GetDateOrders(repo repository.Repo, validator order.ValidateGetDateOrders) 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetDateOrders(c.Request().Context(), req)
+		resp, err := order.New(storage).GetDateOrders(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -652,7 +652,7 @@ func GetDateOrders(repo repository.Repo, validator order.ValidateGetDateOrders) 
 	}
 }
 
-func GetDateOrdersByStatus(repo repository.Repo, validator order.ValidateGetDateOrdersByStatus) echo.HandlerFunc {
+func GetDateOrdersByStatus(storage repository.Storage, validator order.ValidateGetDateOrdersByStatus) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetDateOrdersByStatusRequest{}
 
@@ -679,7 +679,7 @@ func GetDateOrdersByStatus(repo repository.Repo, validator order.ValidateGetDate
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetDateOrdersByStatus(c.Request().Context(), req)
+		resp, err := order.New(storage).GetDateOrdersByStatus(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -693,11 +693,11 @@ func GetDateOrdersByStatus(repo repository.Repo, validator order.ValidateGetDate
 	}
 }
 
-func GetAllPromos(repo repository.Repo) echo.HandlerFunc {
+func GetAllPromos(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAllPromosRequest{}
 
-		resp, err := order.New(repo).GetAllPromos(c.Request().Context(), req)
+		resp, err := order.New(storage).GetAllPromos(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -711,7 +711,7 @@ func GetAllPromos(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func GetPromoByOrder(repo repository.Repo, validator order.ValidateGetPromoByOrder) echo.HandlerFunc {
+func GetPromoByOrder(storage repository.Storage, validator order.ValidateGetPromoByOrder) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPromoByOrderRequest{}
 
@@ -730,7 +730,7 @@ func GetPromoByOrder(repo repository.Repo, validator order.ValidateGetPromoByOrd
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetPromoByOrder(c.Request().Context(), req)
+		resp, err := order.New(storage).GetPromoByOrder(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -744,7 +744,7 @@ func GetPromoByOrder(repo repository.Repo, validator order.ValidateGetPromoByOrd
 	}
 }
 
-func GetUserPromos(repo repository.Repo, validator order.ValidateGetUserPromos) echo.HandlerFunc {
+func GetUserPromos(storage repository.Storage, validator order.ValidateGetUserPromos) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetUserPromosRequest{}
 
@@ -760,7 +760,7 @@ func GetUserPromos(repo repository.Repo, validator order.ValidateGetUserPromos) 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).GetUserPromos(c.Request().Context(), req)
+		resp, err := order.New(storage).GetUserPromos(c.Request().Context(), req)
 		if err != nil {
 
 			if strings.Contains(err.Error(), "no rows") {
@@ -774,7 +774,7 @@ func GetUserPromos(repo repository.Repo, validator order.ValidateGetUserPromos) 
 	}
 }
 
-func SetOrderPhone(repo repository.Repo, validator order.ValidateSetOrderPhone) echo.HandlerFunc {
+func SetOrderPhone(storage repository.Storage, validator order.ValidateSetOrderPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderPhoneRequest{}
 
@@ -801,7 +801,7 @@ func SetOrderPhone(repo repository.Repo, validator order.ValidateSetOrderPhone) 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).SetOrderPhone(c.Request().Context(), req)
+		resp, err := order.New(storage).SetOrderPhone(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -810,7 +810,7 @@ func SetOrderPhone(repo repository.Repo, validator order.ValidateSetOrderPhone) 
 	}
 }
 
-func SetOrderAddress(repo repository.Repo, validator order.ValidateSetOrderAddress) echo.HandlerFunc {
+func SetOrderAddress(storage repository.Storage, validator order.ValidateSetOrderAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.SetOrderAddressRequest{}
 
@@ -837,7 +837,7 @@ func SetOrderAddress(repo repository.Repo, validator order.ValidateSetOrderAddre
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := order.New(repo).SetOrderAddress(c.Request().Context(), req)
+		resp, err := order.New(storage).SetOrderAddress(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

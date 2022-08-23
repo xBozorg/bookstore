@@ -2,16 +2,16 @@ package v1
 
 import (
 	"github.com/XBozorg/bookstore/adapter/auth"
-	payment "github.com/XBozorg/bookstore/adapter/payment/zarinpal"
+	"github.com/XBozorg/bookstore/adapter/payment"
+	"github.com/XBozorg/bookstore/adapter/repository"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func Routing(repo repository.Repo) *echo.Echo {
+func Routing(repo repository.Storage) *echo.Echo {
 	e := echo.New()
 
 	userGroup := e.Group("/v1/user")

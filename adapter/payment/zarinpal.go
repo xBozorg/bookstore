@@ -18,7 +18,7 @@ import (
 
 var zarinpalConfig = config.Conf.GetZarinpalConfig()
 
-func ZarinpalPayment(repo repository.Repo, validator order.ValidateGetOrderPaymentInfo) echo.HandlerFunc {
+func ZarinpalPayment(storage repository.Storage, validator order.ValidateGetOrderPaymentInfo) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetOrderPaymentInfoRequest{}
@@ -41,7 +41,7 @@ func ZarinpalPayment(repo repository.Repo, validator order.ValidateGetOrderPayme
 			return echo.NewHTTPError(http.StatusOK, err.Error())
 		}
 
-		paymentInfo, err := order.New(repo).GetOrderPaymentInfo(c.Request().Context(), req)
+		paymentInfo, err := order.New(storage).GetOrderPaymentInfo(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
@@ -62,7 +62,7 @@ func ZarinpalPayment(repo repository.Repo, validator order.ValidateGetOrderPayme
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
-		if _, err = order.New(repo).ZarinpalCreateOpenOrder(
+		if _, err = order.New(storage).ZarinpalCreateOpenOrder(
 			c.Request().Context(),
 			dto.ZarinpalCreateOpenOrderRequest{
 				OrderID:   req.OrderID,
@@ -79,7 +79,7 @@ func ZarinpalPayment(repo repository.Repo, validator order.ValidateGetOrderPayme
 	}
 }
 
-func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
+func ZarinpalPaymentVerification(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		authority := c.QueryParam("Authority")
@@ -92,7 +92,7 @@ func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
-		getOrderResp, err := order.New(repo).ZarinpalGetOrderByAuthority(
+		getOrderResp, err := order.New(storage).ZarinpalGetOrderByAuthority(
 			c.Request().Context(),
 			dto.ZarinpalGetOrderByAuthorityRequest{Authority: authority},
 		)
@@ -107,7 +107,7 @@ func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusConflict, "order payment already verified")
 		}
 
-		total, err := order.New(repo).GetOrderTotal(
+		total, err := order.New(storage).GetOrderTotal(
 			c.Request().Context(),
 			dto.GetOrderTotalRequest{
 				OrderID: getOrderResp.ZarinpalOrder.OrderID,
@@ -140,7 +140,7 @@ func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid status code")
 		}
 
-		if _, err = order.New(repo).ZarinpalSetOrderPayment(
+		if _, err = order.New(storage).ZarinpalSetOrderPayment(
 			c.Request().Context(),
 			dto.ZarinpalSetOrderPaymentRequest{
 				ZarinpalOrderID: getOrderResp.ZarinpalOrder.ID,
@@ -152,7 +152,7 @@ func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
-		if _, err := order.New(repo).SetOrderStatus(
+		if _, err := order.New(storage).SetOrderStatus(
 			c.Request().Context(),
 			dto.SetOrderStatusRequest{
 				OrderID: getOrderResp.ZarinpalOrder.OrderID,
@@ -162,7 +162,7 @@ func ZarinpalPaymentVerification(repo repository.Repo) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		if _, err := order.New(repo).SetOrderReceiptDate(
+		if _, err := order.New(storage).SetOrderReceiptDate(
 			c.Request().Context(),
 			dto.SetOrderReceiptDateRequest{
 				OrderID: getOrderResp.ZarinpalOrder.OrderID,

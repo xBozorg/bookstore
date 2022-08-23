@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (repo Repo) CreateUser(ctx context.Context, u user.User) (user.User, error) {
+func (storage Storage) CreateUser(ctx context.Context, u user.User) (user.User, error) {
 
 	hashedPassword, err := HashPassword(u.Password)
 	if err != nil {
@@ -20,7 +20,7 @@ func (repo Repo) CreateUser(ctx context.Context, u user.User) (user.User, error)
 
 	userID := uuid.NewV4().String()
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO user (id, email, password, username, firstname, lastname, regdate) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		userID,
@@ -42,9 +42,9 @@ func (repo Repo) CreateUser(ctx context.Context, u user.User) (user.User, error)
 	return u, nil
 }
 
-func (repo Repo) LoginUser(ctx context.Context, username, email, password string) (user.User, error) {
+func (storage Storage) LoginUser(ctx context.Context, username, email, password string) (user.User, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id, email, password, username, firstname, lastname FROM user WHERE username = ? OR email = ?",
 		username,
@@ -74,9 +74,9 @@ func (repo Repo) LoginUser(ctx context.Context, username, email, password string
 	return user.User{}, errors.New("password does not match")
 }
 
-func (repo Repo) GetUser(ctx context.Context, userID string) (user.User, error) {
+func (storage Storage) GetUser(ctx context.Context, userID string) (user.User, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT id, email, username, firstname, lastname FROM user WHERE id = ?",
 		userID,
@@ -99,9 +99,9 @@ func (repo Repo) GetUser(ctx context.Context, userID string) (user.User, error) 
 	return u, nil
 }
 
-func (repo Repo) GetUsers(ctx context.Context) ([]user.User, error) {
+func (storage Storage) GetUsers(ctx context.Context) ([]user.User, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT id, email, username, firstname, lastname FROM user",
 	)
@@ -132,11 +132,11 @@ func (repo Repo) GetUsers(ctx context.Context) ([]user.User, error) {
 	return users, nil
 }
 
-func (repo Repo) ChangePassword(ctx context.Context, userID, oldPass, newPass string) error {
+func (storage Storage) ChangePassword(ctx context.Context, userID, oldPass, newPass string) error {
 
 	var oldInDB string
 
-	oldQ := repo.MySQL.QueryRowContext(
+	oldQ := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT password FROM user WHERE id = ?",
 		userID,
@@ -150,7 +150,7 @@ func (repo Repo) ChangePassword(ctx context.Context, userID, oldPass, newPass st
 		if err != nil {
 			return err
 		}
-		_, err = repo.MySQL.ExecContext(ctx, "UPDATE user SET password = ? WHERE id = ?", new, userID)
+		_, err = storage.MySQL.ExecContext(ctx, "UPDATE user SET password = ? WHERE id = ?", new, userID)
 		if err != nil {
 			return err
 		}
@@ -161,9 +161,9 @@ func (repo Repo) ChangePassword(ctx context.Context, userID, oldPass, newPass st
 	return errors.New("password does not match")
 }
 
-func (repo Repo) ChangeUsername(ctx context.Context, userID, username string) error {
+func (storage Storage) ChangeUsername(ctx context.Context, userID, username string) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		"UPDATE user SET username = ? WHERE id = ?",
 		username,
@@ -177,9 +177,9 @@ func (repo Repo) ChangeUsername(ctx context.Context, userID, username string) er
 	return nil
 }
 
-func (repo Repo) AddPhone(ctx context.Context, userID string, phone user.PhoneNumber) (user.PhoneNumber, error) {
+func (storage Storage) AddPhone(ctx context.Context, userID string, phone user.PhoneNumber) (user.PhoneNumber, error) {
 
-	noPhonesQuery := repo.MySQL.QueryRowContext(
+	noPhonesQuery := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT COUNT(*) FROM phone WHERE userID = ?",
 		userID,
@@ -194,7 +194,7 @@ func (repo Repo) AddPhone(ctx context.Context, userID string, phone user.PhoneNu
 	if noPhones >= 3 {
 		return user.PhoneNumber{}, errors.New("max number of phones reached (3/3)")
 	}
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO phone (code, phonenumber, userID) VALUES (?, ?, ?)",
 		phone.Code,
@@ -209,9 +209,9 @@ func (repo Repo) AddPhone(ctx context.Context, userID string, phone user.PhoneNu
 	return phone, nil
 }
 
-func (repo Repo) GetPhone(ctx context.Context, userID string, phoneID uint) (user.PhoneNumber, error) {
+func (storage Storage) GetPhone(ctx context.Context, userID string, phoneID uint) (user.PhoneNumber, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT code, phoneNumber FROM phone WHERE ( userID = ? AND id = ?)",
 		userID,
@@ -233,9 +233,9 @@ func (repo Repo) GetPhone(ctx context.Context, userID string, phoneID uint) (use
 
 	return p, nil
 }
-func (repo Repo) GetPhones(ctx context.Context, userID string) ([]user.PhoneNumber, error) {
+func (storage Storage) GetPhones(ctx context.Context, userID string) ([]user.PhoneNumber, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT id, code, phonenumber FROM phone WHERE userID = ?",
 		userID,
@@ -263,9 +263,9 @@ func (repo Repo) GetPhones(ctx context.Context, userID string) ([]user.PhoneNumb
 	return phones, nil
 }
 
-func (repo Repo) DeletePhone(ctx context.Context, userID string, phoneID uint) error {
+func (storage Storage) DeletePhone(ctx context.Context, userID string, phoneID uint) error {
 
-	_, err := repo.MySQL.ExecContext(ctx,
+	_, err := storage.MySQL.ExecContext(ctx,
 		"DELETE FROM phone WHERE userID = ? AND id = ?",
 		userID,
 		phoneID,
@@ -278,9 +278,9 @@ func (repo Repo) DeletePhone(ctx context.Context, userID string, phoneID uint) e
 	return nil
 }
 
-func (repo Repo) AddAddress(ctx context.Context, userID string, address user.Address) (user.Address, error) {
+func (storage Storage) AddAddress(ctx context.Context, userID string, address user.Address) (user.Address, error) {
 
-	noAddressesQuery := repo.MySQL.QueryRowContext(
+	noAddressesQuery := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT COUNT(*) FROM address WHERE userID = ?",
 		userID,
@@ -296,7 +296,7 @@ func (repo Repo) AddAddress(ctx context.Context, userID string, address user.Add
 		return user.Address{}, errors.New("max number of addresses reached (3/3)")
 	}
 
-	_, err = repo.MySQL.ExecContext(
+	_, err = storage.MySQL.ExecContext(
 		ctx,
 		"INSERT INTO address (country, province, city, street, postalcode, no, description, userID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		address.Country,
@@ -315,9 +315,9 @@ func (repo Repo) AddAddress(ctx context.Context, userID string, address user.Add
 	return address, nil
 }
 
-func (repo Repo) GetAddress(ctx context.Context, userID string, addressID uint) (user.Address, error) {
+func (storage Storage) GetAddress(ctx context.Context, userID string, addressID uint) (user.Address, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT country, province, city, street, postalCode, no, description FROM address WHERE userID = ? AND id = ?",
 		userID,
@@ -342,9 +342,9 @@ func (repo Repo) GetAddress(ctx context.Context, userID string, addressID uint) 
 	return address, nil
 }
 
-func (repo Repo) GetAddresses(ctx context.Context, userID string) ([]user.Address, error) {
+func (storage Storage) GetAddresses(ctx context.Context, userID string) ([]user.Address, error) {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"SELECT id, country, province, city, street, postalCode, no, description FROM address WHERE userID = ?",
 		userID,
@@ -377,9 +377,9 @@ func (repo Repo) GetAddresses(ctx context.Context, userID string) ([]user.Addres
 
 	return addresses, nil
 }
-func (repo Repo) DeleteAddress(ctx context.Context, userID string, addressID uint) error {
+func (storage Storage) DeleteAddress(ctx context.Context, userID string, addressID uint) error {
 
-	_, err := repo.MySQL.ExecContext(
+	_, err := storage.MySQL.ExecContext(
 		ctx,
 		"DELETE FROM address WHERE userID = ? AND id = ?",
 		userID,
@@ -393,9 +393,9 @@ func (repo Repo) DeleteAddress(ctx context.Context, userID string, addressID uin
 	return nil
 }
 
-func (repo Repo) DeleteUser(ctx context.Context, userID string) error {
+func (storage Storage) DeleteUser(ctx context.Context, userID string) error {
 
-	result, err := repo.MySQL.QueryContext(
+	result, err := storage.MySQL.QueryContext(
 		ctx,
 		"DELETE FROM user WHERE id = ?",
 		userID,
@@ -409,9 +409,9 @@ func (repo Repo) DeleteUser(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (repo Repo) DoesUserExist(ctx context.Context, userID string) (bool, error) {
+func (storage Storage) DoesUserExist(ctx context.Context, userID string) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM user WHERE id = ?)",
 		userID,
@@ -426,9 +426,9 @@ func (repo Repo) DoesUserExist(ctx context.Context, userID string) (bool, error)
 	return doesExist, nil
 }
 
-func (repo Repo) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, error) {
+func (storage Storage) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM phone WHERE id = ?)",
 		phoneID,
@@ -442,9 +442,9 @@ func (repo Repo) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, error)
 	return doesExist, nil
 }
 
-func (repo Repo) DoesAddressExist(ctx context.Context, addressID uint) (bool, error) {
+func (storage Storage) DoesAddressExist(ctx context.Context, addressID uint) (bool, error) {
 
-	result := repo.MySQL.QueryRowContext(
+	result := storage.MySQL.QueryRowContext(
 		ctx,
 		"SELECT EXISTS(SELECT 1 FROM address WHERE id = ?)",
 		addressID,

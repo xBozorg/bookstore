@@ -7,7 +7,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/user"
 )
@@ -70,23 +70,23 @@ func ValidateCreateUser(req dto.CreateUserRequest) error {
 
 }
 
-func ValidateGetUser(repo repository.Repo) user.ValidateGetUser {
+func ValidateGetUser(storage repository.Storage) user.ValidateGetUser {
 	return func(ctx context.Context, req dto.GetUserRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteUser(repo repository.Repo) user.ValidateDeleteUser {
+func ValidateDeleteUser(storage repository.Storage) user.ValidateDeleteUser {
 	return func(ctx context.Context, req dto.DeleteUserRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateLoginUser(repo repository.Repo) user.ValidateLoginUser {
+func ValidateLoginUser(storage repository.Storage) user.ValidateLoginUser {
 	return func(ctx context.Context, req dto.LoginUserRequest) error {
 		return validation.ValidateStruct(&req,
 			validation.Field(&req.Email, validation.When(req.Username == "", validation.Required.Error("Either Username or Email is required"), is.Email)),
@@ -96,65 +96,65 @@ func ValidateLoginUser(repo repository.Repo) user.ValidateLoginUser {
 	}
 }
 
-func ValidateChangePass(repo repository.Repo) user.ValidateChangePass {
+func ValidateChangePass(storage repository.Storage) user.ValidateChangePass {
 	return func(ctx context.Context, req dto.ChangePassRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 			validation.Field(&req.OldPass, validation.Required, is.ASCII, validation.Length(6, 60)),
 			validation.Field(&req.NewPass, validation.Required, is.ASCII, validation.Length(6, 60)),
 		)
 	}
 }
 
-func ValidateChangeUsername(repo repository.Repo) user.ValidateChangeUsername {
+func ValidateChangeUsername(storage repository.Storage) user.ValidateChangeUsername {
 	return func(ctx context.Context, req dto.ChangeUsernameRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 			validation.Field(&req.Username, validation.Required, is.Alphanumeric, validation.Length(6, 40)),
 		)
 	}
 }
 
-func ValidateAddPhone(repo repository.Repo) user.ValidateAddPhone {
+func ValidateAddPhone(storage repository.Storage) user.ValidateAddPhone {
 	return func(ctx context.Context, req dto.AddPhoneRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 			validation.Field(&req.Code, validation.Required, is.Digit, validation.Length(1, 10)),
 			validation.Field(&req.PhoneNumber, validation.Required, is.Digit, validation.Length(5, 20)),
 		)
 	}
 }
 
-func ValidateGetPhone(repo repository.Repo) user.ValidateGetPhone {
+func ValidateGetPhone(storage repository.Storage) user.ValidateGetPhone {
 	return func(ctx context.Context, req dto.GetPhoneRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
-			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
+			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetPhones(repo repository.Repo) user.ValidateGetPhones {
+func ValidateGetPhones(storage repository.Storage) user.ValidateGetPhones {
 	return func(ctx context.Context, req dto.GetPhonesRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeletePhone(repo repository.Repo) user.ValidateDeletePhone {
+func ValidateDeletePhone(storage repository.Storage) user.ValidateDeletePhone {
 	return func(ctx context.Context, req dto.DeletePhoneRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
-			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
+			validation.Field(&req.PhoneID, validation.Required, validation.By(doesPhoneExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateAddAddress(repo repository.Repo) user.ValidateAddAddress {
+func ValidateAddAddress(storage repository.Storage) user.ValidateAddAddress {
 	return func(ctx context.Context, req dto.AddAddressRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 			validation.Field(&req.Country, validation.Required, is.CountryCode2),
 			validation.Field(&req.City, validation.Required, is.ASCII, validation.Length(1, 50)),
 			validation.Field(&req.Street, validation.Required, is.ASCII, validation.Length(1, 50)),
@@ -165,28 +165,28 @@ func ValidateAddAddress(repo repository.Repo) user.ValidateAddAddress {
 	}
 }
 
-func ValidateGetAddress(repo repository.Repo) user.ValidateGetAddress {
+func ValidateGetAddress(storage repository.Storage) user.ValidateGetAddress {
 	return func(ctx context.Context, req dto.GetAddressRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
-			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
+			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateGetAddresses(repo repository.Repo) user.ValidateGetAddresses {
+func ValidateGetAddresses(storage repository.Storage) user.ValidateGetAddresses {
 	return func(ctx context.Context, req dto.GetAddressesRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
 		)
 	}
 }
 
-func ValidateDeleteAddress(repo repository.Repo) user.ValidateDeleteAddress {
+func ValidateDeleteAddress(storage repository.Storage) user.ValidateDeleteAddress {
 	return func(ctx context.Context, req dto.DeleteAddressRequest) error {
 		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, repo))),
-			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, repo))),
+			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
+			validation.Field(&req.AddressID, validation.Required, validation.By(doesAddressExist(ctx, storage))),
 		)
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/XBozorg/bookstore/adapter/auth"
-	repository "github.com/XBozorg/bookstore/adapter/repository"
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/admin"
@@ -50,7 +50,7 @@ func AdminAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func GetAdmin(repo repository.Repo, validator admin.ValidateGetAdmin) echo.HandlerFunc {
+func GetAdmin(storage repository.Storage, validator admin.ValidateGetAdmin) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.GetAdminRequest{}
@@ -64,7 +64,7 @@ func GetAdmin(repo repository.Repo, validator admin.ValidateGetAdmin) echo.Handl
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := admin.New(repo).GetAdmin(c.Request().Context(), req)
+		resp, err := admin.New(storage).GetAdmin(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -73,11 +73,11 @@ func GetAdmin(repo repository.Repo, validator admin.ValidateGetAdmin) echo.Handl
 	}
 }
 
-func GetAdmins(repo repository.Repo) echo.HandlerFunc {
+func GetAdmins(storage repository.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAdminsRequest{}
 
-		resp, err := admin.New(repo).GetAdmins(c.Request().Context(), req)
+		resp, err := admin.New(storage).GetAdmins(c.Request().Context(), req)
 		if err != nil {
 			echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -86,7 +86,7 @@ func GetAdmins(repo repository.Repo) echo.HandlerFunc {
 	}
 }
 
-func LoginAdmin(repo repository.Repo, validator admin.ValidateLoginAdmin) echo.HandlerFunc {
+func LoginAdmin(storage repository.Storage, validator admin.ValidateLoginAdmin) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		req := dto.LoginAdminRequest{}
@@ -98,7 +98,7 @@ func LoginAdmin(repo repository.Repo, validator admin.ValidateLoginAdmin) echo.H
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		resp, err := admin.New(repo).LoginAdmin(c.Request().Context(), req)
+		resp, err := admin.New(storage).LoginAdmin(c.Request().Context(), req)
 		if err != nil {
 			if strings.Contains(err.Error(), "no rows") {
 				return echo.NewHTTPError(http.StatusNotFound)
