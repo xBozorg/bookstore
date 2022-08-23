@@ -8,6 +8,10 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+var (
+	repo repository.Storage
+)
+
 func init() {
 	log.DefLoggers(&log.I, &log.E, &log.H) // initialize loggers
 
@@ -20,7 +24,7 @@ func init() {
 
 	log.I.Infoln("Config file Loaded")
 
-	err = repository.Repo.Connect(&config.Conf) // connect repository to databases
+	err = repo.Connect(&config.Conf) // connect repository to databases
 	if err != nil {
 		log.E.Panic(err)
 	}
@@ -31,9 +35,9 @@ func init() {
 
 func main() {
 
-	defer repository.Repo.Close()
+	defer repo.Close()
 
-	e := v1.Routing(repository.Repo)
+	e := v1.Routing(repo)
 
 	e.Use(middleware.Recover())
 

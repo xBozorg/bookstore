@@ -1,11 +1,12 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/config"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -21,54 +22,141 @@ const (
 	refreshTokenCookieName = "refresh-token"
 )
 
-func GenerateTokensAndSetCookies(c echo.Context, id, role string) error {
+func GenerateTokens(c echo.Context, storage repository.Storage, tk repository.Token) error {
 
-	accessToken, expA, err := generateAccessToken(config.Conf.GetJWTConfig().Secret, id, role)
+	accessToken, expA, err := generateAccessToken(tk)
 	if err != nil {
 		return err
 	}
 
-	refreshToken, expR, err := generateRefreshToken(config.Conf.GetJWTConfig().RefreshSecret, id, role)
+	refreshToken, expR, err := generateAndSaveRefreshToken(c, storage, tk)
 	if err != nil {
 		return err
 	}
 
 	setTokenCookie(accessTokenCookieName, accessToken, expA, c)
 	setTokenCookie(refreshTokenCookieName, refreshToken, expR, c)
-	setIDCookie(id, expA, c)
 
 	return nil
 }
 
-func generateAccessToken(secret, id, role string) (string, time.Time, error) {
+func generateAccessToken(tk repository.Token) (string, time.Time, error) {
 
 	expirationTime := time.Now().Add(15 * time.Minute)
 
-	return generateToken(id, role, expirationTime, []byte(secret))
-}
-
-func generateRefreshToken(refreshSecret, id, role string) (string, time.Time, error) {
-
-	expirationTime := time.Now().Add(10 * 24 * time.Hour)
-
-	return generateToken(id, role, expirationTime, []byte(refreshSecret))
-}
-
-func generateToken(id, role string, expirationTime time.Time, secret []byte) (string, time.Time, error) {
-
 	claims := &Claims{
-		Role: role,
+		Role: tk.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   id,
+			Subject:   tk.ID,
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString(secret)
+	tokenString, err := token.SignedString([]byte(config.Conf.GetJWTConfig().Secret))
 	if err != nil {
 		return "", time.Now(), err
+	}
+
+	return tokenString, expirationTime, nil
+}
+
+func GetID(c echo.Context) (string, error) {
+
+	accessCookie, err := c.Cookie("access-token")
+	if err != nil {
+		return "", err
+	}
+
+	token, err := jwt.Parse(
+		accessCookie.Value,
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(config.Conf.GetJWTConfig().Secret), nil
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	accessClaims := token.Claims.(jwt.MapClaims)
+	id := accessClaims["sub"].(string)
+
+	return id, nil
+}
+
+func GetSignOutInfo(c echo.Context) (repository.Token, error) {
+
+	refreshCookie, err := c.Cookie("refresh-token")
+	if err != nil {
+		return repository.Token{}, err
+	}
+
+	token, err := jwt.Parse(
+		refreshCookie.Value,
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
+		},
+	)
+	if err != nil {
+		return repository.Token{}, err
+	}
+
+	refreshClaims := token.Claims.(jwt.MapClaims)
+	tk := repository.Token{
+		ID:  refreshClaims["sub"].(string),
+		JTI: refreshClaims["jti"].(string),
+	}
+
+	return tk, nil
+}
+
+func DeleteAccessCookie(c echo.Context) error {
+
+	_, err := c.Cookie("access-token")
+	if err != nil {
+		return err
+	}
+
+	ac := &http.Cookie{
+		Name:     "access-token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+	}
+
+	c.SetCookie(ac)
+
+	return nil
+}
+
+func generateAndSaveRefreshToken(c echo.Context, storage repository.Storage, tk repository.Token) (string, time.Time, error) {
+
+	expirationTime := time.Now().Add(10 * 24 * time.Hour)
+
+	tk.JTI = uuid.NewV4().String()
+
+	claims := &Claims{
+		Role: tk.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   tk.ID,
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			ID:        tk.JTI,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString([]byte(config.Conf.GetJWTConfig().RefreshSecret))
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	tk.RefreshToken = tokenString
+	tk.RefreshExp = expirationTime
+	if err := storage.SaveRefreshToken(c.Request().Context(), tk); err != nil {
+		return "", time.Time{}, err
 	}
 
 	return tokenString, expirationTime, nil
@@ -86,46 +174,6 @@ func setTokenCookie(name, token string, expiration time.Time, c echo.Context) {
 	c.SetCookie(cookie)
 }
 
-func setIDCookie(id string, expiration time.Time, c echo.Context) {
-	cookie := new(http.Cookie)
-	cookie.Name = "ID"
-	cookie.Value = id
-	cookie.Expires = expiration
-	cookie.Path = "/"
-	cookie.HttpOnly = true
-	//cookie.Secure = true
-	cookie.SameSite = http.SameSiteStrictMode
-	c.SetCookie(cookie)
-}
-
-func CheckUserID(c echo.Context, conf config.JwtConfig, userID string) (bool, error) {
-	accessTokenCookie, err := c.Cookie("access-token")
-	if err != nil {
-		return false, err
-	}
-
-	tokenString := accessTokenCookie.Value
-
-	token, err := jwt.Parse(tokenString,
-		func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(conf.Secret), nil
-		})
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if claims["sub"] == userID {
-			return true, nil
-		}
-
-	} else {
-		return false, err
-	}
-
-	return false, nil
-}
-
 func UserJWTErrorChecker(err error, c echo.Context) error {
 	return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 }
@@ -133,42 +181,112 @@ func AdminJWTErrorChecker(err error, c echo.Context) error {
 	return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 }
 
-func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+func UserTokenRefresher(repo repository.Storage) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 
-		_, errAccess := c.Cookie("access-token")
-		_, errID := c.Cookie("ID")
-		refreshCookie, errRefresh := c.Cookie("refresh-token")
+			_, errAccess := c.Cookie("access-token")
+			refreshCookie, errRefresh := c.Cookie("refresh-token")
 
-		// if access-token or ID not exists but refresh-token exists
-		if (errAccess != nil || errID != nil) && errRefresh == nil {
+			if errAccess != nil && errRefresh == nil {
 
-			token, err := jwt.Parse(
-				refreshCookie.Value,
-				func(token *jwt.Token) (interface{}, error) {
-					return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
-				},
-			)
-
-			if err != nil {
-				return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-			}
-
-			claims := token.Claims.(jwt.MapClaims)
-			role := claims["role"].(string)
-			id := claims["sub"].(string)
-			exp := claims["exp"].(float64)
-
-			if (time.Until(time.Unix(int64(exp), 0)) > 0) && token != nil && token.Valid {
-				err = GenerateTokensAndSetCookies(c, id, role)
+				token, err := jwt.Parse(
+					refreshCookie.Value,
+					func(token *jwt.Token) (interface{}, error) {
+						return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
+					},
+				)
 				if err != nil {
 					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 				}
+
+				refreshClaims := token.Claims.(jwt.MapClaims)
+				jti := refreshClaims["jti"].(string)
+				role := refreshClaims["role"].(string)
+				id := refreshClaims["sub"].(string)
+				refreshExp := refreshClaims["exp"].(float64)
+
+				tk := repository.Token{
+					ID:           id,
+					Role:         role,
+					JTI:          jti,
+					RefreshToken: refreshCookie.Value,
+				}
+
+				if exist, err := repo.DoesRefreshTokenExist(c.Request().Context(), tk); !exist || err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
+				}
+
+				if (time.Until(time.Unix(int64(refreshExp), 0)) > 0) && token != nil && token.Valid {
+
+					if err := GenerateTokens(c, repo, tk); err != nil {
+						return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
+					}
+
+					if err := repo.DeleteRefreshToken(c.Request().Context(), tk); err != nil {
+						return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
+					}
+				}
+
+				return c.Redirect(http.StatusMovedPermanently, c.Request().URL.String())
 			}
 
-			return c.Redirect(http.StatusMovedPermanently, c.Request().URL.String())
+			return next(c)
 		}
+	}
+}
 
-		return next(c)
+func AdminTokenRefresher(repo repository.Storage) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+
+			_, errAccess := c.Cookie("access-token")
+			refreshCookie, errRefresh := c.Cookie("refresh-token")
+
+			if errAccess != nil && errRefresh == nil {
+
+				token, err := jwt.Parse(
+					refreshCookie.Value,
+					func(token *jwt.Token) (interface{}, error) {
+						return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
+					},
+				)
+				if err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+				}
+
+				refreshClaims := token.Claims.(jwt.MapClaims)
+				jti := refreshClaims["jti"].(string)
+				role := refreshClaims["role"].(string)
+				id := refreshClaims["sub"].(string)
+				refreshExp := refreshClaims["exp"].(float64)
+
+				tk := repository.Token{
+					ID:           id,
+					Role:         role,
+					JTI:          jti,
+					RefreshToken: refreshCookie.Value,
+				}
+
+				if exist, err := repo.DoesRefreshTokenExist(c.Request().Context(), tk); !exist || err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+				}
+
+				if (time.Until(time.Unix(int64(refreshExp), 0)) > 0) && token != nil && token.Valid {
+
+					if err := GenerateTokens(c, repo, tk); err != nil {
+						return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+					}
+
+					if err := repo.DeleteRefreshToken(c.Request().Context(), tk); err != nil {
+						return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+					}
+				}
+
+				return c.Redirect(http.StatusMovedPermanently, c.Request().URL.String())
+			}
+
+			return next(c)
+		}
 	}
 }

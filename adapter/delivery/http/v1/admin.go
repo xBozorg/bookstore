@@ -16,10 +16,6 @@ import (
 
 func AdminAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		adminTokenCookie, err := c.Cookie("ID")
-		if err != nil {
-			return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
-		}
 
 		accessTokenCookie, err := c.Cookie("access-token")
 		if err != nil {
@@ -41,8 +37,7 @@ func AdminAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 		}
 
-		if _, ok := token.Claims.(*auth.Claims); !ok || !token.Valid || claims.Role != "admin" || claims.Subject != adminTokenCookie.Value {
-			// use as error string for debugging -> fmt.Sprintf("Claims is valid:%v , Token is valid:%v , Role is User:%v , userId of userToken and accessToken is the same:%v ", ok, token.Valid, claims.Role == "user",claims.Subject != userTokenCookie.Value)
+		if _, ok := token.Claims.(*auth.Claims); !ok || !token.Valid || claims.Role != "admin" {
 			return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 		}
 
@@ -54,8 +49,11 @@ func GetAdmin(storage repository.Storage, validator admin.ValidateGetAdmin) echo
 	return func(c echo.Context) error {
 
 		req := dto.GetAdminRequest{}
-		adminCookie, _ := c.Cookie("ID")
-		req.AdminId = adminCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.AdminId = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			if strings.Contains(err.Error(), "does not exist") {
@@ -109,8 +107,12 @@ func LoginAdmin(storage repository.Storage, validator admin.ValidateLoginAdmin) 
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		err = auth.GenerateTokensAndSetCookies(c, resp.Admin.ID, "admin")
-		if err != nil {
+		if err := auth.GenerateTokens(c, storage,
+			repository.Token{
+				ID:   resp.Admin.ID,
+				Role: "admin",
+			},
+		); err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		}
 
@@ -121,5 +123,49 @@ func LoginAdmin(storage repository.Storage, validator admin.ValidateLoginAdmin) 
 func AdminLoginForm() echo.HandlerFunc { // simple handler for redirect unauthenticated admins
 	return func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "admin login page")
+	}
+}
+
+func AdminLogOut(storage repository.Storage) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		tk, err := auth.GetSignOutInfo(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+
+		err = storage.DeleteRefreshToken(c.Request().Context(), tk)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		err = auth.DeleteAccessCookie(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		return c.Redirect(http.StatusMovedPermanently, "/v1")
+	}
+}
+
+func AdminLogOutAllDevices(storage repository.Storage) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+
+		err = storage.DeleteUserRefreshTokens(c.Request().Context(), id)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		err = auth.DeleteAccessCookie(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		return c.Redirect(http.StatusMovedPermanently, "/v1")
 	}
 }

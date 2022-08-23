@@ -18,10 +18,6 @@ import (
 
 func UserAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userTokenCookie, err := c.Cookie("ID")
-		if err != nil {
-			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-		}
 		accessTokenCookie, err := c.Cookie("access-token")
 		if err != nil {
 			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
@@ -42,8 +38,7 @@ func UserAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 		}
 
-		if _, ok := token.Claims.(*auth.Claims); !ok || !token.Valid || claims.Role != "user" || claims.Subject != userTokenCookie.Value {
-			// use as error string for debugging -> fmt.Sprintf("Claims is valid:%v , Token is valid:%v , Role is User:%v , userId of userToken and accessToken is the same:%v ", ok, token.Valid, claims.Role == "user",claims.Subject != userTokenCookie.Value)
+		if _, ok := token.Claims.(*auth.Claims); !ok || !token.Valid || claims.Role != "user" {
 			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 		}
 
@@ -81,8 +76,12 @@ func CreateUser(storage repository.Storage, validator user.ValidateCreateUser) e
 
 		loginUserResp := dto.LoginUserResponse(createUserResp)
 
-		err = auth.GenerateTokensAndSetCookies(c, loginUserResp.User.ID, "user")
-		if err != nil {
+		if err := auth.GenerateTokens(c, storage,
+			repository.Token{
+				ID:   loginUserResp.User.ID,
+				Role: "user",
+			},
+		); err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		}
 
@@ -113,8 +112,12 @@ func LoginUser(storage repository.Storage, validator user.ValidateLoginUser) ech
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		err = auth.GenerateTokensAndSetCookies(c, resp.User.ID, "user")
-		if err != nil {
+		if err := auth.GenerateTokens(c, storage,
+			repository.Token{
+				ID:   resp.User.ID,
+				Role: "user",
+			},
+		); err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		}
 
@@ -132,8 +135,11 @@ func GetUser(storage repository.Storage, validator user.ValidateGetUser) echo.Ha
 	return func(c echo.Context) error {
 
 		req := dto.GetUserRequest{}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			if strings.Contains(err.Error(), "does not exist") {
@@ -168,8 +174,11 @@ func DeleteUser(storage repository.Storage, validator user.ValidateDeleteUser) e
 	return func(c echo.Context) error {
 
 		req := dto.DeleteUserRequest{}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			if strings.Contains(err.Error(), "does not exist") {
@@ -178,7 +187,7 @@ func DeleteUser(storage repository.Storage, validator user.ValidateDeleteUser) e
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		_, err := user.New(storage).DeleteUser(c.Request().Context(), req)
+		_, err = user.New(storage).DeleteUser(c.Request().Context(), req)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -193,14 +202,17 @@ func ChangePassword(storage repository.Storage, validator user.ValidateChangePas
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		_, err := user.New(storage).ChangePassword(c.Request().Context(), req)
+		_, err = user.New(storage).ChangePassword(c.Request().Context(), req)
 		if err != nil {
 			if err.Error() == "password does not match" {
 				return echo.NewHTTPError(http.StatusForbidden, err.Error())
@@ -219,8 +231,11 @@ func ChangeUsername(storage repository.Storage, validator user.ValidateChangeUse
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -244,8 +259,11 @@ func AddPhone(storage repository.Storage, validator user.ValidateAddPhone) echo.
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -265,6 +283,7 @@ func AddPhone(storage repository.Storage, validator user.ValidateAddPhone) echo.
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
 func GetPhone(storage repository.Storage, validator user.ValidateGetPhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhoneRequest{}
@@ -272,8 +291,11 @@ func GetPhone(storage repository.Storage, validator user.ValidateGetPhone) echo.
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 		req.PhoneID = uint(pid)
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -291,11 +313,15 @@ func GetPhone(storage repository.Storage, validator user.ValidateGetPhone) echo.
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
 func GetPhones(storage repository.Storage, validator user.ValidateGetPhones) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetPhonesRequest{}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -309,6 +335,7 @@ func GetPhones(storage repository.Storage, validator user.ValidateGetPhones) ech
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
 func DeletePhone(storage repository.Storage, validator user.ValidateDeletePhone) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeletePhoneRequest{}
@@ -316,8 +343,11 @@ func DeletePhone(storage repository.Storage, validator user.ValidateDeletePhone)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 		req.PhoneID = uint(pid)
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -344,8 +374,11 @@ func AddAddress(storage repository.Storage, validator user.ValidateAddAddress) e
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -361,6 +394,7 @@ func AddAddress(storage repository.Storage, validator user.ValidateAddAddress) e
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
 func GetAddress(storage repository.Storage, validator user.ValidateGetAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
@@ -370,8 +404,11 @@ func GetAddress(storage repository.Storage, validator user.ValidateGetAddress) e
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 		req.AddressID = uint(aid)
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -388,11 +425,15 @@ func GetAddress(storage repository.Storage, validator user.ValidateGetAddress) e
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
 func GetAddresses(storage repository.Storage, validator user.ValidateGetAddresses) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.GetAddressesRequest{}
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -405,6 +446,7 @@ func GetAddresses(storage repository.Storage, validator user.ValidateGetAddresse
 		return c.JSON(http.StatusOK, resp)
 	}
 }
+
 func DeleteAddress(storage repository.Storage, validator user.ValidateDeleteAddress) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := dto.DeleteAddressRequest{}
@@ -413,8 +455,11 @@ func DeleteAddress(storage repository.Storage, validator user.ValidateDeleteAddr
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 		req.AddressID = uint(aid)
 
 		if err := validator(c.Request().Context(), req); err != nil {
@@ -429,5 +474,49 @@ func DeleteAddress(storage repository.Storage, validator user.ValidateDeleteAddr
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, resp)
+	}
+}
+
+func UserLogOut(storage repository.Storage) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		tk, err := auth.GetSignOutInfo(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+
+		err = storage.DeleteRefreshToken(c.Request().Context(), tk)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		err = auth.DeleteAccessCookie(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		return c.Redirect(http.StatusMovedPermanently, "/v1")
+	}
+}
+
+func UserLogOutAllDevices(storage repository.Storage) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+
+		err = storage.DeleteUserRefreshTokens(c.Request().Context(), id)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		err = auth.DeleteAccessCookie(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+
+		return c.Redirect(http.StatusMovedPermanently, "/v1")
 	}
 }

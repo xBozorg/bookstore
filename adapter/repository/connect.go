@@ -21,10 +21,6 @@ func (s *Storage) Close() {
 	s.Redis.Close()
 }
 
-var (
-	Repo Storage
-)
-
 func (s *Storage) mysqlConnect(conf *config.MySQLConfig) error {
 	cfg := mysql.Config{
 		User:   conf.User,
