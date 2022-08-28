@@ -6,9 +6,12 @@ import (
 	"errors"
 
 	"github.com/XBozorg/bookstore/config"
+	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/go-sql-driver/mysql"
+	mdb "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type Storage struct {
@@ -23,11 +26,13 @@ func (s *Storage) Close() {
 
 func (s *Storage) mysqlConnect(conf *config.MySQLConfig) error {
 	cfg := mysql.Config{
-		User:   conf.User,
-		Passwd: conf.Pass,
-		Net:    conf.Net,
-		Addr:   conf.Address,
-		DBName: conf.Name,
+		User:                 conf.User,
+		Passwd:               conf.Pass,
+		Net:                  conf.Net,
+		Addr:                 conf.Address,
+		DBName:               conf.Name,
+		MultiStatements:      true,
+		AllowNativePasswords: true,
 	}
 	mysqldb, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
@@ -35,6 +40,23 @@ func (s *Storage) mysqlConnect(conf *config.MySQLConfig) error {
 	}
 	pingErr := mysqldb.Ping()
 	if pingErr != nil {
+		return err
+	}
+
+	mysqlDriver, err := mdb.WithInstance(mysqldb, &mdb.Config{})
+	if err != nil {
+		return err
+	}
+
+	migrate, err := migrate.NewWithDatabaseInstance(
+		"file:///app/db/migrations",
+		"mysql",
+		mysqlDriver,
+	)
+	if err != nil {
+		return err
+	}
+	if err := migrate.Up(); err != nil {
 		return err
 	}
 

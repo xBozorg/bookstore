@@ -1,0 +1,33 @@
+-- bookstore.book definition
+
+CREATE TABLE `book` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(100) NOT NULL,
+  `isbn` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `pages` int unsigned NOT NULL,
+  `description` varchar(500) DEFAULT NULL,
+  `year` year NOT NULL,
+  `date` datetime NOT NULL,
+  `digital_price` int unsigned NOT NULL,
+  `digital_discount` int unsigned DEFAULT '0',
+  `physical_price` int unsigned NOT NULL,
+  `physical_discount` int unsigned DEFAULT '0',
+  `physical_stock` int unsigned NOT NULL,
+  `pdf` varchar(150) DEFAULT NULL,
+  `epub` varchar(150) DEFAULT NULL,
+  `djvu` varchar(150) DEFAULT NULL,
+  `azw` varchar(150) DEFAULT NULL,
+  `txt` varchar(150) DEFAULT NULL,
+  `docx` varchar(150) DEFAULT NULL,
+  `lang_id` int unsigned NOT NULL,
+  `cover_front` varchar(150) NOT NULL,
+  `cover_back` varchar(150) NOT NULL,
+  `publisher` int unsigned NOT NULL DEFAULT '0',
+  `availability` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `book_UN` (`isbn`),
+  KEY `book_FK` (`lang_id`),
+  KEY `book_FK_1` (`publisher`),
+  CONSTRAINT `book_FK` FOREIGN KEY (`lang_id`) REFERENCES `language` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `book_FK_1` FOREIGN KEY (`publisher`) REFERENCES `publisher` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
