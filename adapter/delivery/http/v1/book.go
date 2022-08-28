@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/XBozorg/bookstore/adapter/auth"
 	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/book"
@@ -625,8 +626,11 @@ func GetUserDigitalBooks(storage repository.Storage, validator book.ValidateGetU
 	return func(c echo.Context) error {
 		req := dto.GetUserDigitalBooksRequest{}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 
@@ -659,8 +663,11 @@ func DownloadBook(storage repository.Storage, validator book.ValidateDownloadBoo
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		bid, err := strconv.ParseUint(c.Param("bookID"), 10, 64)
 		if err != nil {

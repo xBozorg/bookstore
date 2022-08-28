@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/XBozorg/bookstore/adapter/auth"
 	"github.com/XBozorg/bookstore/adapter/repository"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/order"
@@ -21,8 +22,11 @@ func AddItem(storage repository.Storage, validator order.ValidateAddItem) echo.H
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 
@@ -383,8 +387,11 @@ func SetOrderPromo(storage repository.Storage, validator order.ValidateSetOrderP
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		oid, err := strconv.ParseUint(c.Param("orderID"), 10, 64)
 		if err != nil {
@@ -555,8 +562,11 @@ func GetUserOrders(storage repository.Storage, validator order.ValidateGetUserOr
 	return func(c echo.Context) error {
 		req := dto.GetUserOrdersRequest{}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 
@@ -585,8 +595,11 @@ func GetUserOrdersByStatus(storage repository.Storage, validator order.ValidateG
 	return func(c echo.Context) error {
 		req := dto.GetUserOrdersByStatusRequest{}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		s, err := strconv.ParseUint(c.Param("code"), 10, 64)
 		if err != nil {
@@ -748,8 +761,11 @@ func GetUserPromos(storage repository.Storage, validator order.ValidateGetUserPr
 	return func(c echo.Context) error {
 		req := dto.GetUserPromosRequest{}
 
-		userCookie, _ := c.Cookie("ID")
-		req.UserID = userCookie.Value
+		id, err := auth.GetID(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized)
+		}
+		req.UserID = id
 
 		if err := validator(c.Request().Context(), req); err != nil {
 

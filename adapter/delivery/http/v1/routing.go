@@ -26,7 +26,7 @@ func Routing(storage repository.Storage) *echo.Echo {
 	adminGroup := e.Group("/v1/admin")
 
 	userGroup.Use(auth.UserTokenRefresher(storage))
-	//adminGroup.Use(auth.AdminTokenRefresher(storage))
+	adminGroup.Use(auth.AdminTokenRefresher(storage))
 
 	userGroup.Use(middleware.JWTWithConfig(
 		middleware.JWTConfig{
