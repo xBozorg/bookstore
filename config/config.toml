@@ -1,9 +1,9 @@
 [mysql]
-name = ''
-address = 'host:port'
+name = 'bookstore'
+address = 'db:port'
 net = 'tcp'
-user = ''
-pass = ''
+user = 'user'
+pass = 'userpass'
 
 [jwt]
 secret = 'HS256 Secret Key'
@@ -46,6 +46,6 @@ merchant_id = ""
 sandbox = true
 
 [redis]
-address = "host:port"
+address = "redis:port"
 pass = ""
 db = 0
