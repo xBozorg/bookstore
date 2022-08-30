@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io"
+	"os"
 
 	"github.com/XBozorg/bookstore/config"
-	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/go-sql-driver/mysql"
-	mdb "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type Storage struct {
@@ -43,20 +42,15 @@ func (s *Storage) mysqlConnect(conf *config.MySQLConfig) error {
 		return err
 	}
 
-	mysqlDriver, err := mdb.WithInstance(mysqldb, &mdb.Config{})
+	initFile, err := os.Open("db/init.sql")
 	if err != nil {
 		return err
 	}
-
-	migrate, err := migrate.NewWithDatabaseInstance(
-		"file:///app/db/migrations",
-		"mysql",
-		mysqlDriver,
-	)
+	initBytes, err := io.ReadAll(initFile)
 	if err != nil {
 		return err
 	}
-	if err := migrate.Up(); err != nil {
+	if _, err = mysqldb.Exec(string(initBytes)); err != nil {
 		return err
 	}
 
