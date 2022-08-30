@@ -46,6 +46,8 @@ func (s *Storage) mysqlConnect(conf *config.MySQLConfig) error {
 	if err != nil {
 		return err
 	}
+	defer initFile.Close()
+
 	initBytes, err := io.ReadAll(initFile)
 	if err != nil {
 		return err
