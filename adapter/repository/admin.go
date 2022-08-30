@@ -9,23 +9,25 @@ import (
 
 func (storage Storage) LoginAdmin(ctx context.Context, email, password string) (admin.Admin, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, email, password, phonenumber FROM admin WHERE email = ?",
-		email,
 	)
+	if err != nil {
+		return admin.Admin{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, email)
 
 	var a admin.Admin
 	var passHash string
 
-	err := result.Scan(
+	if err = result.Scan(
 		&a.ID,
 		&a.Email,
 		&passHash,
 		&a.PhoneNumber,
-	)
-
-	if err != nil {
+	); err != nil {
 		return admin.Admin{}, err
 	}
 
@@ -39,15 +41,18 @@ func (storage Storage) LoginAdmin(ctx context.Context, email, password string) (
 
 func (storage Storage) DoesAdminExist(ctx context.Context, adminID string) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM admin WHERE id = ?)",
-		adminID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, adminID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -56,20 +61,23 @@ func (storage Storage) DoesAdminExist(ctx context.Context, adminID string) (bool
 
 func (storage Storage) GetAdmin(ctx context.Context, adminID string) (admin.Admin, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, email, phonenumber FROM admin WHERE id = ?",
-		adminID,
 	)
+	if err != nil {
+		return admin.Admin{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, adminID)
 
 	a := admin.Admin{}
 
-	err := result.Scan(
+	if err = result.Scan(
 		&a.ID,
 		&a.Email,
 		&a.PhoneNumber,
-	)
-	if err != nil {
+	); err != nil {
 		return admin.Admin{}, err
 	}
 
@@ -78,10 +86,15 @@ func (storage Storage) GetAdmin(ctx context.Context, adminID string) (admin.Admi
 
 func (storage Storage) GetAdmins(ctx context.Context) ([]admin.Admin, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, email, phonenumber FROM admin",
 	)
+	if err != nil {
+		return []admin.Admin{}, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.QueryContext(ctx)
 
 	if err != nil {
 		return []admin.Admin{}, err
@@ -92,15 +105,14 @@ func (storage Storage) GetAdmins(ctx context.Context) ([]admin.Admin, error) {
 	for result.Next() {
 		a := admin.Admin{}
 
-		err := result.Scan(
+		if err = result.Scan(
 			&a.ID,
 			&a.Email,
 			&a.PhoneNumber,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []admin.Admin{}, nil
 		}
+
 		admins = append(admins, a)
 	}
 

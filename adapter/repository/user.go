@@ -20,9 +20,17 @@ func (storage Storage) CreateUser(ctx context.Context, u user.User) (user.User, 
 
 	userID := uuid.NewV4().String()
 
-	_, err = storage.MySQL.ExecContext(
-		ctx,
-		"INSERT INTO user (id, email, password, username, firstname, lastname, regdate) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	stmt, err := storage.MySQL.PrepareContext(ctx,
+		`INSERT INTO user 
+		(id, email, password, username, firstname, lastname, regdate) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+	)
+	if err != nil {
+		return user.User{}, err
+	}
+	defer stmt.Close()
+
+	if _, err := stmt.ExecContext(ctx,
 		userID,
 		u.Email,
 		u.Password,
@@ -30,9 +38,7 @@ func (storage Storage) CreateUser(ctx context.Context, u user.User) (user.User, 
 		u.FirstName,
 		u.LastName,
 		time.Now().Format("2006-01-02 15:04:05"),
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.User{}, err
 	}
 
@@ -44,9 +50,15 @@ func (storage Storage) CreateUser(ctx context.Context, u user.User) (user.User, 
 
 func (storage Storage) LoginUser(ctx context.Context, username, email, password string) (user.User, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, email, password, username, firstname, lastname FROM user WHERE username = ? OR email = ?",
+	)
+	if err != nil {
+		return user.User{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx,
 		username,
 		email,
 	)
@@ -54,16 +66,14 @@ func (storage Storage) LoginUser(ctx context.Context, username, email, password 
 	var u user.User
 	var passHash string
 
-	err := result.Scan(
+	if err = result.Scan(
 		&u.ID,
 		&u.Email,
 		&passHash,
 		&u.Username,
 		&u.FirstName,
 		&u.LastName,
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.User{}, err
 	}
 
@@ -76,23 +86,25 @@ func (storage Storage) LoginUser(ctx context.Context, username, email, password 
 
 func (storage Storage) GetUser(ctx context.Context, userID string) (user.User, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, email, username, firstname, lastname FROM user WHERE id = ?",
-		userID,
 	)
+	if err != nil {
+		return user.User{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, userID)
 
 	var u user.User
 
-	err := result.Scan(
+	if err = result.Scan(
 		&u.ID,
 		&u.Email,
 		&u.Username,
 		&u.FirstName,
 		&u.LastName,
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.User{}, err
 	}
 
@@ -101,11 +113,15 @@ func (storage Storage) GetUser(ctx context.Context, userID string) (user.User, e
 
 func (storage Storage) GetUsers(ctx context.Context) ([]user.User, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, email, username, firstname, lastname FROM user",
 	)
+	if err != nil {
+		return []user.User{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -115,15 +131,13 @@ func (storage Storage) GetUsers(ctx context.Context) ([]user.User, error) {
 	for result.Next() {
 		var u user.User
 
-		err := result.Scan(
+		if err = result.Scan(
 			&u.ID,
 			&u.Email,
 			&u.Username,
 			&u.FirstName,
 			&u.LastName,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []user.User{}, nil
 		}
 		users = append(users, u)
@@ -134,15 +148,20 @@ func (storage Storage) GetUsers(ctx context.Context) ([]user.User, error) {
 
 func (storage Storage) ChangePassword(ctx context.Context, userID, oldPass, newPass string) error {
 
-	var oldInDB string
-
-	oldQ := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT password FROM user WHERE id = ?",
-		userID,
 	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
-	oldQ.Scan(&oldInDB)
+	oldQ := stmt.QueryRowContext(ctx, userID)
+
+	var oldInDB string
+	if err = oldQ.Scan(&oldInDB); err != nil {
+		return err
+	}
 
 	isSame := CheckPasswordHash(oldPass, oldInDB)
 	if isSame {
@@ -150,8 +169,16 @@ func (storage Storage) ChangePassword(ctx context.Context, userID, oldPass, newP
 		if err != nil {
 			return err
 		}
-		_, err = storage.MySQL.ExecContext(ctx, "UPDATE user SET password = ? WHERE id = ?", new, userID)
+
+		stmt, err := storage.MySQL.PrepareContext(ctx,
+			"UPDATE user SET password = ? WHERE id = ?",
+		)
 		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+
+		if _, err = stmt.ExecContext(ctx, new, userID); err != nil {
 			return err
 		}
 
@@ -163,14 +190,18 @@ func (storage Storage) ChangePassword(ctx context.Context, userID, oldPass, newP
 
 func (storage Storage) ChangeUsername(ctx context.Context, userID, username string) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"UPDATE user SET username = ? WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		username,
 		userID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -179,30 +210,38 @@ func (storage Storage) ChangeUsername(ctx context.Context, userID, username stri
 
 func (storage Storage) AddPhone(ctx context.Context, userID string, phone user.PhoneNumber) (user.PhoneNumber, error) {
 
-	noPhonesQuery := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT COUNT(*) FROM phone WHERE userID = ?",
-		userID,
 	)
+	if err != nil {
+		return user.PhoneNumber{}, err
+	}
+	defer stmt.Close()
 
 	var noPhones int
-	err := noPhonesQuery.Scan(&noPhones)
-	if err != nil {
+
+	noPhonesQuery := stmt.QueryRowContext(ctx, userID)
+	if err = noPhonesQuery.Scan(&noPhones); err != nil {
 		return user.PhoneNumber{}, err
 	}
 
 	if noPhones >= 3 {
 		return user.PhoneNumber{}, errors.New("max number of phones reached (3/3)")
 	}
-	_, err = storage.MySQL.ExecContext(
-		ctx,
+
+	stmt, err = storage.MySQL.PrepareContext(ctx,
 		"INSERT INTO phone (code, phonenumber, userID) VALUES (?, ?, ?)",
+	)
+	if err != nil {
+		return user.PhoneNumber{}, err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		phone.Code,
 		phone.Number,
 		userID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.PhoneNumber{}, err
 	}
 
@@ -211,21 +250,25 @@ func (storage Storage) AddPhone(ctx context.Context, userID string, phone user.P
 
 func (storage Storage) GetPhone(ctx context.Context, userID string, phoneID uint) (user.PhoneNumber, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT code, phoneNumber FROM phone WHERE ( userID = ? AND id = ?)",
+	)
+	if err != nil {
+		return user.PhoneNumber{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx,
 		userID,
 		phoneID,
 	)
 
 	var p user.PhoneNumber
 
-	err := result.Scan(
+	if err = result.Scan(
 		&p.Code,
 		&p.Number,
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.PhoneNumber{}, err
 	}
 
@@ -233,28 +276,31 @@ func (storage Storage) GetPhone(ctx context.Context, userID string, phoneID uint
 
 	return p, nil
 }
+
 func (storage Storage) GetPhones(ctx context.Context, userID string) ([]user.PhoneNumber, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id, code, phonenumber FROM phone WHERE userID = ?",
-		userID,
 	)
-
 	if err != nil {
 		return []user.PhoneNumber{}, err
 	}
+	defer stmt.Close()
+
+	result, err := stmt.QueryContext(ctx, userID)
+	if err != nil {
+		return []user.PhoneNumber{}, err
+	}
+
 	phones := []user.PhoneNumber{}
 	for result.Next() {
 		var phone user.PhoneNumber
 
-		err := result.Scan(
+		if err = result.Scan(
 			&phone.ID,
 			&phone.Code,
 			&phone.Number,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []user.PhoneNumber{}, err
 		}
 		phones = append(phones, phone)
@@ -265,13 +311,18 @@ func (storage Storage) GetPhones(ctx context.Context, userID string) ([]user.Pho
 
 func (storage Storage) DeletePhone(ctx context.Context, userID string, phoneID uint) error {
 
-	_, err := storage.MySQL.ExecContext(ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM phone WHERE userID = ? AND id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = storage.MySQL.ExecContext(ctx,
 		userID,
 		phoneID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -280,15 +331,18 @@ func (storage Storage) DeletePhone(ctx context.Context, userID string, phoneID u
 
 func (storage Storage) AddAddress(ctx context.Context, userID string, address user.Address) (user.Address, error) {
 
-	noAddressesQuery := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT COUNT(*) FROM address WHERE userID = ?",
-		userID,
 	)
+	if err != nil {
+		return user.Address{}, err
+	}
+	defer stmt.Close()
+
+	noAddressesQuery := stmt.QueryRowContext(ctx, userID)
 
 	var noAddresses int
-	err := noAddressesQuery.Scan(&noAddresses)
-	if err != nil {
+	if err = noAddressesQuery.Scan(&noAddresses); err != nil {
 		return user.Address{}, err
 	}
 
@@ -296,9 +350,17 @@ func (storage Storage) AddAddress(ctx context.Context, userID string, address us
 		return user.Address{}, errors.New("max number of addresses reached (3/3)")
 	}
 
-	_, err = storage.MySQL.ExecContext(
-		ctx,
-		"INSERT INTO address (country, province, city, street, postalcode, no, description, userID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	stmt, err = storage.MySQL.PrepareContext(ctx,
+		`INSERT INTO address 
+		(country, province, city, street, postalcode, no, description, userID) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+	)
+	if err != nil {
+		return user.Address{}, err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		address.Country,
 		address.Province,
 		address.City,
@@ -307,26 +369,32 @@ func (storage Storage) AddAddress(ctx context.Context, userID string, address us
 		address.No,
 		address.Description,
 		userID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.Address{}, err
 	}
+
 	return address, nil
 }
 
 func (storage Storage) GetAddress(ctx context.Context, userID string, addressID uint) (user.Address, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
-		"SELECT country, province, city, street, postalCode, no, description FROM address WHERE userID = ? AND id = ?",
+	stmt, err := storage.MySQL.PrepareContext(ctx,
+		`SELECT country, province, city, street, postalCode, no, description FROM address 
+		WHERE userID = ? AND id = ?`,
+	)
+	if err != nil {
+		return user.Address{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx,
 		userID,
 		addressID,
 	)
 
 	var address user.Address
 
-	err := result.Scan(
+	if err = result.Scan(
 		&address.Country,
 		&address.Province,
 		&address.City,
@@ -334,9 +402,7 @@ func (storage Storage) GetAddress(ctx context.Context, userID string, addressID 
 		&address.PostalCode,
 		&address.No,
 		&address.Description,
-	)
-
-	if err != nil {
+	); err != nil {
 		return user.Address{}, err
 	}
 	return address, nil
@@ -344,12 +410,16 @@ func (storage Storage) GetAddress(ctx context.Context, userID string, addressID 
 
 func (storage Storage) GetAddresses(ctx context.Context, userID string) ([]user.Address, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-		"SELECT id, country, province, city, street, postalCode, no, description FROM address WHERE userID = ?",
-		userID,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
+		`SELECT id, country, province, city, street, postalCode, no, description FROM address 
+		WHERE userID = ?`,
 	)
+	if err != nil {
+		return []user.Address{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, userID)
 	if err != nil {
 		return []user.Address{}, err
 	}
@@ -358,7 +428,7 @@ func (storage Storage) GetAddresses(ctx context.Context, userID string) ([]user.
 	for result.Next() {
 		var address user.Address
 
-		err := result.Scan(
+		if err = result.Scan(
 			&address.ID,
 			&address.Country,
 			&address.Province,
@@ -367,9 +437,7 @@ func (storage Storage) GetAddresses(ctx context.Context, userID string) ([]user.
 			&address.PostalCode,
 			&address.No,
 			&address.Description,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []user.Address{}, err
 		}
 		addresses = append(addresses, address)
@@ -379,14 +447,18 @@ func (storage Storage) GetAddresses(ctx context.Context, userID string) ([]user.
 }
 func (storage Storage) DeleteAddress(ctx context.Context, userID string, addressID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM address WHERE userID = ? AND id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		userID,
 		addressID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -395,12 +467,15 @@ func (storage Storage) DeleteAddress(ctx context.Context, userID string, address
 
 func (storage Storage) DeleteUser(ctx context.Context, userID string) error {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM user WHERE id = ?",
-		userID,
 	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -411,15 +486,18 @@ func (storage Storage) DeleteUser(ctx context.Context, userID string) error {
 
 func (storage Storage) DoesUserExist(ctx context.Context, userID string) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM user WHERE id = ?)",
-		userID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, userID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -428,15 +506,18 @@ func (storage Storage) DoesUserExist(ctx context.Context, userID string) (bool, 
 
 func (storage Storage) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM phone WHERE id = ?)",
-		phoneID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, phoneID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 	return doesExist, nil
@@ -444,17 +525,21 @@ func (storage Storage) DoesPhoneExist(ctx context.Context, phoneID uint) (bool, 
 
 func (storage Storage) DoesAddressExist(ctx context.Context, addressID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM address WHERE id = ?)",
-		addressID,
 	)
-
-	var doesExist bool
-	err := result.Scan(&doesExist)
 	if err != nil {
 		return false, err
 	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, addressID)
+
+	var doesExist bool
+	if err = result.Scan(&doesExist); err != nil {
+		return false, err
+	}
+
 	return doesExist, nil
 }
 

@@ -9,15 +9,18 @@ import (
 
 func (storage Storage) DoesAuthorExist(ctx context.Context, authorID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM author WHERE id = ?)",
-		authorID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, authorID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -26,15 +29,18 @@ func (storage Storage) DoesAuthorExist(ctx context.Context, authorID uint) (bool
 
 func (storage Storage) DoesPublisherExist(ctx context.Context, publisherID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM publisher WHERE id = ?)",
-		publisherID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, publisherID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -43,15 +49,18 @@ func (storage Storage) DoesPublisherExist(ctx context.Context, publisherID uint)
 
 func (storage Storage) DoesTopicExist(ctx context.Context, topicID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM topic WHERE id = ?)",
-		topicID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, topicID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -60,15 +69,18 @@ func (storage Storage) DoesTopicExist(ctx context.Context, topicID uint) (bool, 
 
 func (storage Storage) DoesLanguageExist(ctx context.Context, langID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM language WHERE id = ?)",
-		langID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, langID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -77,15 +89,18 @@ func (storage Storage) DoesLanguageExist(ctx context.Context, langID uint) (bool
 
 func (storage Storage) DoesBookExist(ctx context.Context, bookID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT EXISTS(SELECT 1 FROM book WHERE id = ?)",
-		bookID,
 	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, bookID)
 
 	var doesExist bool
-	err := result.Scan(&doesExist)
-	if err != nil {
+	if err = result.Scan(&doesExist); err != nil {
 		return false, err
 	}
 
@@ -94,12 +109,15 @@ func (storage Storage) DoesBookExist(ctx context.Context, bookID uint) (bool, er
 
 func (storage Storage) AddAuthor(ctx context.Context, authorName string) (book.Author, error) {
 
-	result, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"INSERT INTO author (name) VALUES (?)",
-		authorName,
 	)
+	if err != nil {
+		return book.Author{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.ExecContext(ctx, authorName)
 	if err != nil {
 		return book.Author{}, err
 	}
@@ -117,16 +135,18 @@ func (storage Storage) AddAuthor(ctx context.Context, authorName string) (book.A
 
 func (storage Storage) GetAuthor(ctx context.Context, authorID uint) (book.Author, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT name From author WHERE id = ?",
-		authorID,
 	)
+	if err != nil {
+		return book.Author{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, authorID)
 
 	author := book.Author{}
-	err := result.Scan(&author.Name)
-
-	if err != nil {
+	if err = result.Scan(&author.Name); err != nil {
 		return book.Author{}, err
 	}
 
@@ -136,11 +156,15 @@ func (storage Storage) GetAuthor(ctx context.Context, authorID uint) (book.Autho
 
 func (storage Storage) GetAuthors(ctx context.Context) ([]book.Author, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id , name FROM author",
 	)
+	if err != nil {
+		return []book.Author{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []book.Author{}, err
 	}
@@ -150,12 +174,10 @@ func (storage Storage) GetAuthors(ctx context.Context) ([]book.Author, error) {
 	for result.Next() {
 		var a book.Author
 
-		err := result.Scan(
+		if err = result.Scan(
 			&a.ID,
 			&a.Name,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Author{}, err
 		}
 		authors = append(authors, a)
@@ -166,13 +188,15 @@ func (storage Storage) GetAuthors(ctx context.Context) ([]book.Author, error) {
 
 func (storage Storage) DeleteAuthor(ctx context.Context, authorID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM author WHERE id = ?",
-		authorID,
 	)
-
 	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, authorID); err != nil {
 		return err
 	}
 
@@ -181,12 +205,15 @@ func (storage Storage) DeleteAuthor(ctx context.Context, authorID uint) error {
 
 func (storage Storage) AddPublisher(ctx context.Context, publisherName string) (book.Publisher, error) {
 
-	result, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"INSERT INTO publisher (name) VALUES (?)",
-		publisherName,
 	)
+	if err != nil {
+		return book.Publisher{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.ExecContext(ctx, publisherName)
 	if err != nil {
 		return book.Publisher{}, err
 	}
@@ -204,16 +231,19 @@ func (storage Storage) AddPublisher(ctx context.Context, publisherName string) (
 
 func (storage Storage) GetPublisher(ctx context.Context, publisherID uint) (book.Publisher, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT name FROM publisher WHERE id = ?",
-		publisherID,
 	)
+	if err != nil {
+		return book.Publisher{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, publisherID)
 
 	publisher := book.Publisher{}
-	err := result.Scan(&publisher.Name)
 
-	if err != nil {
+	if err = result.Scan(&publisher.Name); err != nil {
 		return book.Publisher{}, err
 	}
 
@@ -223,11 +253,15 @@ func (storage Storage) GetPublisher(ctx context.Context, publisherID uint) (book
 
 func (storage Storage) GetPublishers(ctx context.Context) ([]book.Publisher, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id , name FROM publisher",
 	)
+	if err != nil {
+		return []book.Publisher{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []book.Publisher{}, err
 	}
@@ -237,12 +271,10 @@ func (storage Storage) GetPublishers(ctx context.Context) ([]book.Publisher, err
 	for result.Next() {
 		var p book.Publisher
 
-		err := result.Scan(
+		if err = result.Scan(
 			&p.ID,
 			&p.Name,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Publisher{}, err
 		}
 		publishers = append(publishers, p)
@@ -253,13 +285,15 @@ func (storage Storage) GetPublishers(ctx context.Context) ([]book.Publisher, err
 
 func (storage Storage) DeletePublisher(ctx context.Context, publisherId uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM publisher WHERE id = ?",
-		publisherId,
 	)
-
 	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, publisherId); err != nil {
 		return err
 	}
 
@@ -268,12 +302,15 @@ func (storage Storage) DeletePublisher(ctx context.Context, publisherId uint) er
 
 func (storage Storage) AddTopic(ctx context.Context, topicName string) (book.Topic, error) {
 
-	result, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"INSERT INTO topic (name) VALUES (?)",
-		topicName,
 	)
+	if err != nil {
+		return book.Topic{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.ExecContext(ctx, topicName)
 	if err != nil {
 		return book.Topic{}, err
 	}
@@ -291,16 +328,18 @@ func (storage Storage) AddTopic(ctx context.Context, topicName string) (book.Top
 
 func (storage Storage) GetTopic(ctx context.Context, topicID uint) (book.Topic, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT name FROM topic WHERE id = ?",
-		topicID,
 	)
+	if err != nil {
+		return book.Topic{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, topicID)
 
 	topic := book.Topic{}
-	err := result.Scan(&topic.Name)
-
-	if err != nil {
+	if err = result.Scan(&topic.Name); err != nil {
 		return book.Topic{}, err
 	}
 
@@ -310,11 +349,15 @@ func (storage Storage) GetTopic(ctx context.Context, topicID uint) (book.Topic, 
 
 func (storage Storage) GetTopics(ctx context.Context) ([]book.Topic, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id , name FROM topic",
 	)
+	if err != nil {
+		return []book.Topic{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []book.Topic{}, err
 	}
@@ -324,12 +367,10 @@ func (storage Storage) GetTopics(ctx context.Context) ([]book.Topic, error) {
 	for result.Next() {
 		var t book.Topic
 
-		err := result.Scan(
+		if err = result.Scan(
 			&t.ID,
 			&t.Name,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Topic{}, err
 		}
 		topics = append(topics, t)
@@ -340,13 +381,15 @@ func (storage Storage) GetTopics(ctx context.Context) ([]book.Topic, error) {
 
 func (storage Storage) DeleteTopic(ctx context.Context, topicID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM topic WHERE id = ?",
-		topicID,
 	)
-
 	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, topicID); err != nil {
 		return err
 	}
 
@@ -355,12 +398,15 @@ func (storage Storage) DeleteTopic(ctx context.Context, topicID uint) error {
 
 func (storage Storage) AddLanguage(ctx context.Context, langCode string) (book.Language, error) {
 
-	result, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"INSERT INTO language (code) VALUES (?)",
-		langCode,
 	)
+	if err != nil {
+		return book.Language{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.ExecContext(ctx, langCode)
 	if err != nil {
 		return book.Language{}, err
 	}
@@ -378,16 +424,18 @@ func (storage Storage) AddLanguage(ctx context.Context, langCode string) (book.L
 
 func (storage Storage) GetLanguage(ctx context.Context, langID uint) (book.Language, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT code FROM language WHERE id = ?",
-		langID,
 	)
+	if err != nil {
+		return book.Language{}, err
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRowContext(ctx, langID)
 
 	lang := book.Language{}
-	err := result.Scan(&lang.Code)
-
-	if err != nil {
+	if err = result.Scan(&lang.Code); err != nil {
 		return book.Language{}, err
 	}
 
@@ -397,11 +445,15 @@ func (storage Storage) GetLanguage(ctx context.Context, langID uint) (book.Langu
 
 func (storage Storage) GetLanguages(ctx context.Context) ([]book.Language, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT id , code FROM language",
 	)
+	if err != nil {
+		return []book.Language{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []book.Language{}, err
 	}
@@ -411,12 +463,10 @@ func (storage Storage) GetLanguages(ctx context.Context) ([]book.Language, error
 	for result.Next() {
 		var l book.Language
 
-		err := result.Scan(
+		if err := result.Scan(
 			&l.ID,
 			&l.Code,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Language{}, err
 		}
 
@@ -428,13 +478,15 @@ func (storage Storage) GetLanguages(ctx context.Context) ([]book.Language, error
 
 func (storage Storage) DeleteLanguage(ctx context.Context, langID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM language WHERE id = ?",
-		langID,
 	)
-
 	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, langID); err != nil {
 		return err
 	}
 
@@ -443,16 +495,14 @@ func (storage Storage) DeleteLanguage(ctx context.Context, langID uint) error {
 
 func (storage Storage) AddBook(ctx context.Context, b book.Book) (book.Book, error) {
 
-	result, err := storage.MySQL.ExecContext(
-		ctx,
-
+	result, err := storage.MySQL.ExecContext(ctx,
 		`INSERT INTO book 
 		(
 			title , isbn , pages , description , year , date , digital_price , 
 			physical_price , physical_stock , pdf , epub , djvu , azw , txt ,
 			docx , lang_id , cover_front , cover_back , publisher , availability
 		)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 
 		b.Title,
 		b.ISBN,
@@ -487,16 +537,14 @@ func (storage Storage) AddBook(ctx context.Context, b book.Book) (book.Book, err
 
 	// Add book authors to book_author table
 	for _, author := range b.Authors {
-		err = storage.AddBookAuthor(ctx, uint(bookID), author.ID)
-		if err != nil {
+		if err = storage.AddBookAuthor(ctx, uint(bookID), author.ID); err != nil {
 			return book.Book{}, err
 		}
 	}
 
 	// Add book topics to book_topic table
 	for _, topic := range b.Topics {
-		err = storage.AddBookTopic(ctx, uint(bookID), topic.ID)
-		if err != nil {
+		if err = storage.AddBookTopic(ctx, uint(bookID), topic.ID); err != nil {
 			return book.Book{}, err
 		}
 	}
@@ -506,14 +554,18 @@ func (storage Storage) AddBook(ctx context.Context, b book.Book) (book.Book, err
 
 func (storage Storage) AddBookAuthor(ctx context.Context, bookID, authorID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"INSERT IGNORE INTO book_author (book_id , author_id) VALUES (? , ?)",
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		bookID,
 		authorID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -522,14 +574,18 @@ func (storage Storage) AddBookAuthor(ctx context.Context, bookID, authorID uint)
 
 func (storage Storage) AddBookTopic(ctx context.Context, bookID, topicID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"INSERT IGNORE INTO book_topic (book_id , topic_id) VALUES (? , ?)",
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		bookID,
 		topicID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -538,15 +594,19 @@ func (storage Storage) AddBookTopic(ctx context.Context, bookID, topicID uint) e
 
 func (storage Storage) SetBookDiscount(ctx context.Context, bookID, digital, physical uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"UPDATE book SET digital_discount = ? , physical_discount = ? WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx,
 		digital,
 		physical,
 		bookID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -555,8 +615,7 @@ func (storage Storage) SetBookDiscount(ctx context.Context, bookID, digital, phy
 
 func (storage Storage) GetBook(ctx context.Context, bookID uint) (book.Book, error) {
 
-	bookResult := storage.MySQL.QueryRowContext(
-		ctx,
+	bookResult := storage.MySQL.QueryRowContext(ctx,
 
 		`SELECT title , isbn , pages , description , year , date , 
 		digital_price , digital_discount , physical_price , physical_discount , physical_stock , 
@@ -570,7 +629,7 @@ func (storage Storage) GetBook(ctx context.Context, bookID uint) (book.Book, err
 	b := book.Book{}
 	b.ID = bookID
 
-	err := bookResult.Scan(
+	if err := bookResult.Scan(
 		&b.Title,
 		&b.ISBN,
 		&b.Pages,
@@ -586,9 +645,7 @@ func (storage Storage) GetBook(ctx context.Context, bookID uint) (book.Book, err
 		&b.CoverFront,
 		&b.CoverBack,
 		&b.Availability,
-	)
-
-	if err != nil {
+	); err != nil {
 		return book.Book{}, err
 	}
 
@@ -609,12 +666,15 @@ func (storage Storage) GetBook(ctx context.Context, bookID uint) (book.Book, err
 
 func (storage Storage) GetBookAuthors(ctx context.Context, bookID uint) ([]book.Author, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT * FROM author WHERE id IN ( SELECT author_id FROM book_author WHERE book_id = ? )",
-		bookID,
 	)
+	if err != nil {
+		return []book.Author{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, bookID)
 	if err != nil {
 		return []book.Author{}, err
 	}
@@ -625,12 +685,10 @@ func (storage Storage) GetBookAuthors(ctx context.Context, bookID uint) ([]book.
 	for result.Next() {
 		var author book.Author
 
-		err := result.Scan(
+		if err = result.Scan(
 			&author.ID,
 			&author.Name,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Author{}, err
 		}
 
@@ -642,12 +700,15 @@ func (storage Storage) GetBookAuthors(ctx context.Context, bookID uint) ([]book.
 
 func (storage Storage) GetBookTopics(ctx context.Context, bookID uint) ([]book.Topic, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"SELECT * FROM topic WHERE id IN ( SELECT topic_id FROM book_topic WHERE book_id = ? )",
-		bookID,
 	)
+	if err != nil {
+		return []book.Topic{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, bookID)
 	if err != nil {
 		return []book.Topic{}, err
 	}
@@ -658,12 +719,10 @@ func (storage Storage) GetBookTopics(ctx context.Context, bookID uint) ([]book.T
 	for result.Next() {
 		var topic book.Topic
 
-		err := result.Scan(
+		if err = result.Scan(
 			&topic.ID,
 			&topic.Name,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Topic{}, err
 		}
 
@@ -675,15 +734,19 @@ func (storage Storage) GetBookTopics(ctx context.Context, bookID uint) ([]book.T
 
 func (storage Storage) EditBook(ctx context.Context, b book.Book) (book.Book, error) {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`UPDATE book SET
 		title=? , isbn=? , pages=? , description=? , year=? , digital_price=? , 
 		physical_price=? , physical_stock=? , pdf=? , epub=? , djvu=? , azw=? , 
 		txt=? , docx=? , lang_id=? , cover_front=? , cover_back=? , publisher=? , availability=?
 		WHERE id=? `,
+	)
+	if err != nil {
+		return book.Book{}, err
+	}
+	defer stmt.Close()
 
+	if _, err = stmt.ExecContext(ctx,
 		b.Title,
 		b.ISBN,
 		b.Pages,
@@ -704,9 +767,7 @@ func (storage Storage) EditBook(ctx context.Context, b book.Book) (book.Book, er
 		b.Publisher.ID,
 		b.Availability,
 		b.ID,
-	)
-
-	if err != nil {
+	); err != nil {
 		return book.Book{}, err
 	}
 
@@ -715,11 +776,15 @@ func (storage Storage) EditBook(ctx context.Context, b book.Book) (book.Book, er
 
 func (storage Storage) GetAllBooksFull(ctx context.Context) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-		`SELECT * FROM book`,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
+		"SELECT * FROM book",
 	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -730,7 +795,7 @@ func (storage Storage) GetAllBooksFull(ctx context.Context) ([]book.Book, error)
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.ISBN,
@@ -753,25 +818,28 @@ func (storage Storage) GetAllBooksFull(ctx context.Context) ([]book.Book, error)
 			&b.CoverFront,
 			&b.CoverBack,
 			&b.Availability,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 
 		books = append(books, b)
 	}
+
 	return books, nil
 }
 
 func (storage Storage) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT id , title , digital_price , digital_discount , physical_price , 
 		physical_discount , physical_stock , cover_front , availability FROM book`,
 	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -782,7 +850,7 @@ func (storage Storage) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.Digital.Price,
@@ -792,9 +860,7 @@ func (storage Storage) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 			&b.Physical.Stock,
 			&b.CoverFront,
 			&b.Availability,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 
@@ -805,16 +871,17 @@ func (storage Storage) GetAllBooks(ctx context.Context) ([]book.Book, error) {
 
 func (storage Storage) GetAuthorBooks(ctx context.Context, authorID uint) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT id , title , digital_price , digital_discount ,physical_price , 
 		physical_discount , physical_stock , cover_front , availability FROM book 
 		WHERE id IN ( SELECT book_id FROM book_author WHERE author_id = ? )`,
-
-		authorID,
 	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, authorID)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -824,7 +891,7 @@ func (storage Storage) GetAuthorBooks(ctx context.Context, authorID uint) ([]boo
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.Digital.Price,
@@ -834,9 +901,7 @@ func (storage Storage) GetAuthorBooks(ctx context.Context, authorID uint) ([]boo
 			&b.Physical.Stock,
 			&b.CoverFront,
 			&b.Availability,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 		books = append(books, b)
@@ -847,16 +912,17 @@ func (storage Storage) GetAuthorBooks(ctx context.Context, authorID uint) ([]boo
 
 func (storage Storage) GetTopicBooks(ctx context.Context, topicID uint) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT id , title , digital_price , digital_discount , physical_price , 
 		physical_discount , physical_stock , cover_front , availability FROM book 
 		WHERE id IN ( SELECT book_id FROM book_topic WHERE topic_id = ? )`,
-
-		topicID,
 	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, topicID)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -866,7 +932,7 @@ func (storage Storage) GetTopicBooks(ctx context.Context, topicID uint) ([]book.
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.Digital.Price,
@@ -876,9 +942,7 @@ func (storage Storage) GetTopicBooks(ctx context.Context, topicID uint) ([]book.
 			&b.Physical.Stock,
 			&b.CoverFront,
 			&b.Availability,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 		books = append(books, b)
@@ -889,16 +953,17 @@ func (storage Storage) GetTopicBooks(ctx context.Context, topicID uint) ([]book.
 
 func (storage Storage) GetPublisherBooks(ctx context.Context, publisherID uint) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT id , title , digital_price , digital_discount , physical_price , 
-		 physical_discount , physical_stock , cover_front , availability FROM book 
-		 WHERE publisher = ?`,
-
-		publisherID,
+		physical_discount , physical_stock , cover_front , availability FROM book 
+		WHERE publisher = ?`,
 	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, publisherID)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -908,7 +973,7 @@ func (storage Storage) GetPublisherBooks(ctx context.Context, publisherID uint) 
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.Digital.Price,
@@ -918,9 +983,7 @@ func (storage Storage) GetPublisherBooks(ctx context.Context, publisherID uint) 
 			&b.Physical.Stock,
 			&b.CoverFront,
 			&b.Availability,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 
@@ -932,16 +995,17 @@ func (storage Storage) GetPublisherBooks(ctx context.Context, publisherID uint) 
 
 func (storage Storage) GetLangBooks(ctx context.Context, langID uint) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT id , title , digital_price , digital_discount , physical_price , 
 		physical_discount , physical_stock , cover_front , availability FROM book 
 		WHERE lang_id = ?`,
-
-		langID,
 	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx, langID)
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -951,7 +1015,7 @@ func (storage Storage) GetLangBooks(ctx context.Context, langID uint) ([]book.Bo
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.Digital.Price,
@@ -961,9 +1025,7 @@ func (storage Storage) GetLangBooks(ctx context.Context, langID uint) ([]book.Bo
 			&b.Physical.Stock,
 			&b.CoverFront,
 			&b.Availability,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 
@@ -975,13 +1037,15 @@ func (storage Storage) GetLangBooks(ctx context.Context, langID uint) ([]book.Bo
 
 func (storage Storage) DeleteBook(ctx context.Context, bookID uint) error {
 
-	_, err := storage.MySQL.ExecContext(
-		ctx,
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		"DELETE FROM book WHERE id = ?",
-		bookID,
 	)
-
 	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, bookID); err != nil {
 		return err
 	}
 
@@ -990,9 +1054,7 @@ func (storage Storage) DeleteBook(ctx context.Context, bookID uint) error {
 
 func (storage Storage) GetUserDigitalBooks(ctx context.Context, userID string) ([]book.Book, error) {
 
-	result, err := storage.MySQL.QueryContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT id , title , isbn , pages , description , year , 
 		pdf , epub , djvu , azw , txt , docx , 
 		lang_id , cover_front , publisher FROM book 
@@ -1002,11 +1064,16 @@ func (storage Storage) GetUserDigitalBooks(ctx context.Context, userID string) (
 			AND 
 			type = 0
 		)`,
+	)
+	if err != nil {
+		return []book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.QueryContext(ctx,
 		userID,
 		order.StatusCreated,
 	)
-
 	if err != nil {
 		return []book.Book{}, err
 	}
@@ -1015,7 +1082,7 @@ func (storage Storage) GetUserDigitalBooks(ctx context.Context, userID string) (
 	for result.Next() {
 		var b book.Book
 
-		err := result.Scan(
+		if err = result.Scan(
 			&b.ID,
 			&b.Title,
 			&b.ISBN,
@@ -1031,9 +1098,7 @@ func (storage Storage) GetUserDigitalBooks(ctx context.Context, userID string) (
 			&b.Language.ID,
 			&b.CoverFront,
 			&b.Publisher.ID,
-		)
-
-		if err != nil {
+		); err != nil {
 			return []book.Book{}, err
 		}
 
@@ -1045,13 +1110,17 @@ func (storage Storage) GetUserDigitalBooks(ctx context.Context, userID string) (
 
 func (storage Storage) DoesUserAccessBook(ctx context.Context, userID string, bookID uint) (bool, error) {
 
-	result := storage.MySQL.QueryRowContext(
-		ctx,
-
+	stmt, err := storage.MySQL.PrepareContext(ctx,
 		`SELECT 1 FROM item WHERE type = ? 
 		AND book_id = ? 
 		AND order_id IN ( SELECT id FROM orders WHERE user_id = ? AND status != ? )`,
+	)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
 
+	result := stmt.QueryRowContext(ctx,
 		order.Digital,
 		bookID,
 		userID,
@@ -1059,8 +1128,7 @@ func (storage Storage) DoesUserAccessBook(ctx context.Context, userID string, bo
 	)
 
 	var access bool
-	err := result.Scan(&access)
-	if err != nil {
+	if err = result.Scan(&access); err != nil {
 		return false, err
 	}
 
