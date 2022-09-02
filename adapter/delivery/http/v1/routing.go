@@ -72,34 +72,34 @@ func Routing(storage repository.Storage) *echo.Echo {
 	e.GET("v1/book/topic/:topicID", GetTopicBooks(storage, validator.ValidateGetTopicBooks(storage)))                 // <GetTopicBooks>     .../v1/book/topic/:topicID
 	e.GET("v1/book/lang/:langID", GetLangBooks(storage, validator.ValidateGetLangBooks(storage)))                     // <GetLangBooks>      .../v1/book/lang/:langID
 
-	userGroup.GET("", GetUser(storage, validator.ValidateGetUser(storage)))                                                   // <GetUser>               .../v1/user
-	userGroup.DELETE("", DeleteUser(storage, validator.ValidateDeleteUser(storage)))                                          // <DeleteUser>            .../v1/user
-	userGroup.PUT("/password", ChangePassword(storage, validator.ValidateChangePass(storage)))                                // <ChangePassword>        .../v1/user/password
-	userGroup.PUT("/username", ChangeUsername(storage, validator.ValidateChangeUsername(storage)))                            // <ChangeUsername>        .../v1/user/username
-	userGroup.POST("/phone", AddPhone(storage, validator.ValidateAddPhone(storage)))                                          // <AddPhone>              .../v1/user/phone
-	userGroup.GET("/phone/:phoneID", GetPhone(storage, validator.ValidateGetPhone(storage)))                                  // <GetPhone>              .../v1/user/phone/:phoneID
-	userGroup.GET("/phone", GetPhones(storage, validator.ValidateGetPhones(storage)))                                         // <GetPhones>             .../v1/user/phone
-	userGroup.DELETE("/phone/:phoneID", DeletePhone(storage, validator.ValidateDeletePhone(storage)))                         // <DeletePhone>           .../v1/user/phone/:phoneID
-	userGroup.POST("/address", AddAddress(storage, validator.ValidateAddAddress(storage)))                                    // <AddAddress>            .../v1/user/address
-	userGroup.GET("/address/:addressID", GetAddress(storage, validator.ValidateGetAddress(storage)))                          // <GetAddress>            .../v1/user/address/:addressID
-	userGroup.GET("/address", GetAddresses(storage, validator.ValidateGetAddresses(storage)))                                 // <GetAddresses>          .../v1/user/address
-	userGroup.DELETE("/address/:addressID", DeleteAddress(storage, validator.ValidateDeleteAddress(storage)))                 // <DeleteAddress>         .../v1/user/address/:addressID
-	userGroup.POST("/order/item", AddItem(storage, validator.ValidateAddItem(storage)))                                       // <AddItem>               .../v1/user/order/item
-	userGroup.PUT("/order/:orderID/item/:itemID/inc", IncreaseQuantity(storage, validator.ValidateIncreaseQuantity(storage))) // <IncreaseQuantity>      .../v1/user/order/:orderID/item/:itemID/inc
-	userGroup.PUT("/order/:orderID/item/:itemID/dec", DecreaseQuantity(storage, validator.ValidateDecreaseQuantity(storage))) // <DecreaseQuantity>      .../v1/user/order/:orderID/item/:itemID/dec
-	userGroup.DELETE("/order/:orderID/item/:itemID", RemoveItem(storage, validator.ValidateRemoveItem(storage)))              // <RemoveItem>            .../v1/user/order/:orderID/item/:itemID
-	userGroup.GET("/order/:orderID/item", GetOrderItems(storage, validator.ValidateGetOrderItems(storage)))                   // <GetOrderItems>         .../v1/user/order/:orderID/item
-	userGroup.POST("/order/:orderID/promo", SetOrderPromo(storage, validator.ValidateSetOrderPromo(storage)))                 // <SetOrderPromo>         .../v1/user/order/:orderID/promo
-	userGroup.DELETE("/order/:orderID/promo", RemoveOrderPromo(storage, validator.ValidateRemoveOrderPromo(storage)))         // <RemoveOrderPromo>      .../v1/user/order/:orderID/promo
-	userGroup.GET("/order", GetUserOrders(storage, validator.ValidateGetUserOrders(storage)))                                 // <GetUserOrders>         .../v1/user/order
-	userGroup.GET("/order/status/:code", GetUserOrdersByStatus(storage, validator.ValidateGetUserOrdersByStatus(storage)))    // <GetUserOrdersByStatus> .../v1/user/order/status/:code
-	userGroup.GET("/promo", GetUserPromos(storage, validator.ValidateGetUserPromos(storage)))                                 // <GetUserPromos>         .../v1/user/promo
-	userGroup.GET("/dashboard/digital", GetUserDigitalBooks(storage, validator.ValidateGetUserDigitalBooks(storage)))         // <GetUserDigitalBooks>   .../v1/user/dashboard/digital
-	userGroup.GET("/dashboard/download/:bookID", DownloadBook(storage, validator.ValidateDownloadBook(storage)))              // <DownloadBook>          .../v1/user/dashboard/download/:bookID
-	userGroup.PUT("/order/:orderID/phone", SetOrderPhone(storage, validator.ValidateSetOrderPhone(storage)))                  // <SetOrderPhone>         .../v1/user/order/:orderID/phone
-	userGroup.PUT("/order/:orderID/address", SetOrderAddress(storage, validator.ValidateSetOrderAddress(storage)))            // <SetOrderAddress>       .../v1/user/order/:orderID/address
-	userGroup.GET("/logout", UserLogOut(storage))                                                                             // <UserLogOut>            .../v1/logout
-	userGroup.GET("/logout/all", UserLogOutAllDevices(storage))                                                               // <UserLogOutAllDevices>  .../v1/logout/all
+	userGroup.GET("", GetUser(storage, validator.ValidateGetUser(storage)))                                                     // <GetUser>               .../v1/user
+	userGroup.DELETE("", DeleteUser(storage, validator.ValidateDeleteUser(storage)))                                            // <DeleteUser>            .../v1/user
+	userGroup.PATCH("/password", ChangePassword(storage, validator.ValidateChangePass(storage)))                                // <ChangePassword>        .../v1/user/password
+	userGroup.PATCH("/username", ChangeUsername(storage, validator.ValidateChangeUsername(storage)))                            // <ChangeUsername>        .../v1/user/username
+	userGroup.POST("/phone", AddPhone(storage, validator.ValidateAddPhone(storage)))                                            // <AddPhone>              .../v1/user/phone
+	userGroup.GET("/phone/:phoneID", GetPhone(storage, validator.ValidateGetPhone(storage)))                                    // <GetPhone>              .../v1/user/phone/:phoneID
+	userGroup.GET("/phone", GetPhones(storage, validator.ValidateGetPhones(storage)))                                           // <GetPhones>             .../v1/user/phone
+	userGroup.DELETE("/phone/:phoneID", DeletePhone(storage, validator.ValidateDeletePhone(storage)))                           // <DeletePhone>           .../v1/user/phone/:phoneID
+	userGroup.POST("/address", AddAddress(storage, validator.ValidateAddAddress(storage)))                                      // <AddAddress>            .../v1/user/address
+	userGroup.GET("/address/:addressID", GetAddress(storage, validator.ValidateGetAddress(storage)))                            // <GetAddress>            .../v1/user/address/:addressID
+	userGroup.GET("/address", GetAddresses(storage, validator.ValidateGetAddresses(storage)))                                   // <GetAddresses>          .../v1/user/address
+	userGroup.DELETE("/address/:addressID", DeleteAddress(storage, validator.ValidateDeleteAddress(storage)))                   // <DeleteAddress>         .../v1/user/address/:addressID
+	userGroup.POST("/order/item", AddItem(storage, validator.ValidateAddItem(storage)))                                         // <AddItem>               .../v1/user/order/item
+	userGroup.PATCH("/order/:orderID/item/:itemID/inc", IncreaseQuantity(storage, validator.ValidateIncreaseQuantity(storage))) // <IncreaseQuantity>      .../v1/user/order/:orderID/item/:itemID/inc
+	userGroup.PATCH("/order/:orderID/item/:itemID/dec", DecreaseQuantity(storage, validator.ValidateDecreaseQuantity(storage))) // <DecreaseQuantity>      .../v1/user/order/:orderID/item/:itemID/dec
+	userGroup.DELETE("/order/:orderID/item/:itemID", RemoveItem(storage, validator.ValidateRemoveItem(storage)))                // <RemoveItem>            .../v1/user/order/:orderID/item/:itemID
+	userGroup.GET("/order/:orderID/item", GetOrderItems(storage, validator.ValidateGetOrderItems(storage)))                     // <GetOrderItems>         .../v1/user/order/:orderID/item
+	userGroup.PATCH("/order/:orderID/promo", SetOrderPromo(storage, validator.ValidateSetOrderPromo(storage)))                  // <SetOrderPromo>         .../v1/user/order/:orderID/promo
+	userGroup.DELETE("/order/:orderID/promo", RemoveOrderPromo(storage, validator.ValidateRemoveOrderPromo(storage)))           // <RemoveOrderPromo>      .../v1/user/order/:orderID/promo
+	userGroup.GET("/order", GetUserOrders(storage, validator.ValidateGetUserOrders(storage)))                                   // <GetUserOrders>         .../v1/user/order
+	userGroup.GET("/order/status/:code", GetUserOrdersByStatus(storage, validator.ValidateGetUserOrdersByStatus(storage)))      // <GetUserOrdersByStatus> .../v1/user/order/status/:code
+	userGroup.GET("/promo", GetUserPromos(storage, validator.ValidateGetUserPromos(storage)))                                   // <GetUserPromos>         .../v1/user/promo
+	userGroup.GET("/dashboard/digital", GetUserDigitalBooks(storage, validator.ValidateGetUserDigitalBooks(storage)))           // <GetUserDigitalBooks>   .../v1/user/dashboard/digital
+	userGroup.GET("/dashboard/download/:bookID", DownloadBook(storage, validator.ValidateDownloadBook(storage)))                // <DownloadBook>          .../v1/user/dashboard/download/:bookID
+	userGroup.PATCH("/order/:orderID/phone", SetOrderPhone(storage, validator.ValidateSetOrderPhone(storage)))                  // <SetOrderPhone>         .../v1/user/order/:orderID/phone
+	userGroup.PATCH("/order/:orderID/address", SetOrderAddress(storage, validator.ValidateSetOrderAddress(storage)))            // <SetOrderAddress>       .../v1/user/order/:orderID/address
+	userGroup.DELETE("/logout", UserLogOut(storage))                                                                            // <UserLogOut>            .../v1/logout
+	userGroup.DELETE("/logout/all", UserLogOutAllDevices(storage))                                                              // <UserLogOutAllDevices>  .../v1/logout/all
 
 	userGroup.POST("/order/:orderID/payment/zarinpal", payment.ZarinpalPayment(storage, validator.ValidateGetOrderPaymentInfo(storage))) // <ZarinpalPayment>             .../v1/user/order/:orderID/payment/zarinpal
 	e.GET("v1/payment/zarinpal/check", payment.ZarinpalPaymentVerification(storage))                                                     // <ZarinpalPaymentVerification> .../v1/payment/zarinpal/check
@@ -116,13 +116,13 @@ func Routing(storage repository.Storage) *echo.Echo {
 	adminGroup.POST("/lang", AddLanguage(storage, validator.ValidateAddLanguage(storage)))                                       // <AddLanguage>           .../v1/admin/lang
 	adminGroup.DELETE("/lang/:langID", DeleteLanguage(storage, validator.ValidateDeleteLanguage(storage)))                       // <DeleteLanguage>        .../v1/admin/lang/:langID
 	adminGroup.POST("/book", AddBook(storage, validator.ValidateAddBook(storage)))                                               // <AddBook>               .../v1/admin/book
-	adminGroup.POST("/discount/:bookID", SetBookDiscount(storage, validator.ValidateSetBookDiscount(storage)))                   // <SetBookDiscount>       .../v1/admin/discount/:bookID
-	adminGroup.POST("/book/:bookID", EditBook(storage, validator.ValidateEditBook(storage)))                                     // <EditBook>              .../v1/admin/book/:bookID
+	adminGroup.PATCH("/discount/:bookID", SetBookDiscount(storage, validator.ValidateSetBookDiscount(storage)))                  // <SetBookDiscount>       .../v1/admin/discount/:bookID
+	adminGroup.PUT("/book/:bookID", EditBook(storage, validator.ValidateEditBook(storage)))                                      // <EditBook>              .../v1/admin/book/:bookID
 	adminGroup.DELETE("/book/:bookID", DeleteBook(storage, validator.ValidateDeleteBook(storage)))                               // <DeleteBook>            .../v1/admin/book/:bookID
 	adminGroup.POST("/promo", CreatePromoCode(storage, validator.ValidateCreatePromoCode(storage)))                              // <CreatePromoCode>       .../v1/admin/promo
 	adminGroup.DELETE("/promo/:promoID", DeletePromoCode(storage, validator.ValidateDeletePromoCode(storage)))                   // <DeletePromoCode>       .../v1/admin/promo/:promoID
-	adminGroup.POST("/order/:orderID/status", SetOrderStatus(storage, validator.ValidateSetOrderStatus(storage)))                // <SetOrderStatus>        .../v1/admin/order/:orderID/status
-	adminGroup.POST("/order/:orderID/stn", SetOrderSTN(storage, validator.ValidateSetOrderSTN(storage)))                         // <SetOrderSTN>           .../v1/admin/order/:orderID/stn
+	adminGroup.PATCH("/order/:orderID/status", SetOrderStatus(storage, validator.ValidateSetOrderStatus(storage)))               // <SetOrderStatus>        .../v1/admin/order/:orderID/status
+	adminGroup.PATCH("/order/:orderID/stn", SetOrderSTN(storage, validator.ValidateSetOrderSTN(storage)))                        // <SetOrderSTN>           .../v1/admin/order/:orderID/stn
 	adminGroup.DELETE("/order/:orderID", DeleteOrder(storage, validator.ValidateDeleteOrder(storage)))                           // <DeleteOrder>           .../v1/admin/order/:orderID
 	adminGroup.GET("/order", GetAllOrders(storage))                                                                              // <GetAllOrders>          .../v1/admin/order
 	adminGroup.GET("/order/status/:code", GetAllOrdersByStatus(storage, validator.ValidateGetAllOrdersByStatus(storage)))        // <GetAllOrdersByStatus>  .../v1/admin/order/:status
@@ -130,8 +130,8 @@ func Routing(storage repository.Storage) *echo.Echo {
 	adminGroup.GET("/order/date/status/:code", GetDateOrdersByStatus(storage, validator.ValidateGetDateOrdersByStatus(storage))) // <GetDateOrdersByStatus> .../v1/admin/order/date/status/:code
 	adminGroup.GET("/promo", GetAllPromos(storage))                                                                              // <GetAllPromos>          .../v1/admin/promo
 	adminGroup.GET("/promo/order/:orderID", GetPromoByOrder(storage, validator.ValidateGetPromoByOrder(storage)))                // <GetPromoByOrder>       .../v1/admin/promo/order/:orderID
-	adminGroup.GET("/logout", AdminLogOut(storage))                                                                              // <AdminLogOut>            .../v1/logout
-	adminGroup.GET("/logout/all", AdminLogOutAllDevices(storage))                                                                // <AdminLogOutAllDevices>  .../v1/logout/all
+	adminGroup.DELETE("/logout", AdminLogOut(storage))                                                                           // <AdminLogOut>            .../v1/admin/logout
+	adminGroup.DELETE("/logout/all", AdminLogOutAllDevices(storage))                                                             // <AdminLogOutAllDevices>  .../v1/admin/logout/all
 
 	return e
 }
