@@ -103,6 +103,10 @@ func IncreaseQuantity(storage repository.Storage, validator order.ValidateIncrea
 				return echo.NewHTTPError(http.StatusNotFound)
 			}
 
+			if err.Error() == "cannot increase digital item" {
+				return echo.NewHTTPError(http.StatusForbidden, "cannot increase digital item")
+			}
+
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
@@ -148,6 +152,10 @@ func DecreaseQuantity(storage repository.Storage, validator order.ValidateDecrea
 
 			if strings.Contains(err.Error(), "no rows") {
 				return echo.NewHTTPError(http.StatusNotFound)
+			}
+
+			if err.Error() == "cannot increase digital item" {
+				return echo.NewHTTPError(http.StatusForbidden, "cannot increase digital item")
 			}
 
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

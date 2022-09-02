@@ -28,8 +28,6 @@ type Repository interface {
 	DeleteLanguage(ctx context.Context, langID uint) error
 
 	AddBook(ctx context.Context, b book.Book) (book.Book, error)
-	AddBookAuthor(ctx context.Context, bookID, authorID uint) error
-	AddBookTopic(ctx context.Context, bookID, topicID uint) error
 	SetBookDiscount(ctx context.Context, bookID, digital, physical uint) error
 	GetBook(ctx context.Context, bookID uint) (book.Book, error)
 	GetBookAuthors(ctx context.Context, bookID uint) ([]book.Author, error)

@@ -4,13 +4,6 @@ import (
 	"github.com/XBozorg/bookstore/entity/order"
 )
 
-type CreateEmptyOrderRequest struct {
-	UserID string `json:"userID"`
-}
-type CreateEmptyOrderResponse struct {
-	OrderID uint `json:"orderID"`
-}
-
 type CheckOpenOrderRequest struct {
 	UserID string `json:"userID"`
 }

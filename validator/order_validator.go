@@ -133,22 +133,6 @@ func checkStatusForSTN(ctx context.Context, repo order.Repository, orderID uint)
 	}
 }
 
-func ValidateCreateEmptyOrder(storage repository.Storage) order.ValidateCreateEmptyOrder {
-	return func(ctx context.Context, req dto.CreateEmptyOrderRequest) error {
-		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
-		)
-	}
-}
-
-func ValidateCheckOpenOrder(storage repository.Storage) order.ValidateCheckOpenOrder {
-	return func(ctx context.Context, req dto.CheckOpenOrderRequest) error {
-		return validation.ValidateStruct(&req,
-			validation.Field(&req.UserID, is.UUIDv4, validation.By(doesUserExist(ctx, storage))),
-		)
-	}
-}
-
 func ValidateAddItem(storage repository.Storage) order.ValidateAddItem {
 	return func(ctx context.Context, req dto.AddItemRequest) error {
 

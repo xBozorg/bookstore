@@ -35,9 +35,10 @@ func init() {
 
 func main() {
 
-	defer repo.Close()
-
 	e := v1.Routing(repo)
+
+	defer e.Close()
+	defer repo.Close()
 
 	e.Use(middleware.Recover())
 

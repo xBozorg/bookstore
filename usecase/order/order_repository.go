@@ -10,11 +10,8 @@ type Repository interface {
 	AddItem(ctx context.Context, item order.Item, userID string) error
 	IncreaseQuantity(ctx context.Context, itemID, orderID uint) error
 	DecreaseQuantity(ctx context.Context, itemID, orderID uint) error
-	DecreasePhysicalStock(ctx context.Context, quantity, bookID uint) error
 	GetOrderItems(ctx context.Context, orderID uint) ([]order.Item, error)
 	RemoveItem(ctx context.Context, itemID, orderID uint) error
-	CheckQuantity(ctx context.Context, quantity, bookID uint) error
-	CheckAvailability(ctx context.Context, bookID uint) (uint, error)
 
 	SetOrderPhone(ctx context.Context, orderID, phoneID uint) error
 	SetOrderAddress(ctx context.Context, orderID, addressID uint) error
@@ -22,12 +19,9 @@ type Repository interface {
 	CreatePromoCode(ctx context.Context, promo order.Promo, userID string) error
 	DeletePromoCode(ctx context.Context, promoID uint) error
 
-	CreateEmptyOrder(ctx context.Context, userID string) (uint, error)
-	CheckOpenOrder(ctx context.Context, userID string) (uint, error)
 	SetOrderStatus(ctx context.Context, status, orderID uint) error
 	GetOrderStatus(ctx context.Context, orderID uint) (uint, error)
 	SetOrderSTN(ctx context.Context, stn string, orderID uint) error
-	SetOrderTotal(ctx context.Context, orderID uint) error
 	SetOrderPromo(ctx context.Context, orderID uint, promoCode, userID string) error
 	SetOrderReceiptDate(ctx context.Context, orderID uint) error
 	RemoveOrderPromo(ctx context.Context, orderID uint) error

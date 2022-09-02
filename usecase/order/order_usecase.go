@@ -38,9 +38,6 @@ type UseCase interface {
 	GetPromoByOrder(ctx context.Context, req dto.GetPromoByOrderRequest) (dto.GetPromoByOrderResponse, error)
 	GetUserPromos(ctx context.Context, req dto.GetUserPromosRequest) (dto.GetUserPromosResponse, error)
 
-	//CreateEmptyOrder(ctx context.Context, req dto.CreateEmptyOrderRequest) (dto.CreateEmptyOrderResponse, error)
-	//CheckOpenOrder(ctx context.Context, req dto.CheckOpenOrderRequest) (dto.CheckOpenOrderResponse, error)
-
 	GetOrderPaymentInfo(ctx context.Context, req dto.GetOrderPaymentInfoRequest) (dto.GetOrderPaymentInfoResponse, error)
 	GetOrderTotal(ctx context.Context, req dto.GetOrderTotalRequest) (dto.GetOrderTotalResponse, error)
 
@@ -56,29 +53,6 @@ type UseCaseRepo struct {
 func New(r Repository) UseCaseRepo {
 	return UseCaseRepo{repo: r}
 }
-
-/*
-func (u UseCaseRepo) CreateEmptyOrder(ctx context.Context, req dto.CreateEmptyOrderRequest) (dto.CreateEmptyOrderResponse, error) {
-
-	orderID, err := u.repo.CreateEmptyOrder(ctx, req.UserID)
-	if err != nil {
-		return dto.CreateEmptyOrderResponse{}, err
-	}
-
-	return dto.CreateEmptyOrderResponse{OrderID: orderID}, nil
-}
-*/
-/*
-func (u UseCaseRepo) CheckOpenOrder(ctx context.Context, req dto.CheckOpenOrderRequest) (dto.CheckOpenOrderResponse, error) {
-
-	orderID, err := u.repo.CheckOpenOrder(ctx, req.UserID)
-	if err != nil {
-		return dto.CheckOpenOrderResponse{}, err
-	}
-
-	return dto.CheckOpenOrderResponse{OrderID: orderID}, nil
-}
-*/
 
 func (u UseCaseRepo) AddItem(ctx context.Context, req dto.AddItemRequest) (dto.AddItemResponse, error) {
 

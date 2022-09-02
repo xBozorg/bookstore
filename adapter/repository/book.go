@@ -495,15 +495,25 @@ func (storage Storage) DeleteLanguage(ctx context.Context, langID uint) error {
 
 func (storage Storage) AddBook(ctx context.Context, b book.Book) (book.Book, error) {
 
-	result, err := storage.MySQL.ExecContext(ctx,
-		`INSERT INTO book 
-		(
+	tx, err := storage.MySQL.BeginTx(ctx, nil)
+	if err != nil {
+		return book.Book{}, err
+	}
+	stmt, err := tx.PrepareContext(ctx,
+		`INSERT INTO book (
 			title , isbn , pages , description , year , date , digital_price , 
 			physical_price , physical_stock , pdf , epub , djvu , azw , txt ,
 			docx , lang_id , cover_front , cover_back , publisher , availability
-		)
+		) 
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+	)
+	if err != nil {
+		tx.Rollback()
+		return book.Book{}, err
+	}
+	defer stmt.Close()
 
+	result, err := stmt.ExecContext(ctx,
 		b.Title,
 		b.ISBN,
 		b.Pages,
@@ -525,71 +535,50 @@ func (storage Storage) AddBook(ctx context.Context, b book.Book) (book.Book, err
 		b.Publisher.ID,
 		b.Availability,
 	)
-
 	if err != nil {
+		tx.Rollback()
 		return book.Book{}, err
 	}
-
 	bookID, err := result.LastInsertId()
 	if err != nil {
 		return book.Book{}, err
 	}
 
 	// Add book authors to book_author table
+	stmt, err = tx.PrepareContext(ctx,
+		"INSERT IGNORE INTO book_author (book_id , author_id) VALUES (? , ?)",
+	)
+	if err != nil {
+		tx.Rollback()
+		return book.Book{}, err
+	}
+	defer stmt.Close()
+
 	for _, author := range b.Authors {
-		if err = storage.AddBookAuthor(ctx, uint(bookID), author.ID); err != nil {
+		if _, err = stmt.ExecContext(ctx, uint(bookID), author.ID); err != nil {
+			tx.Rollback()
 			return book.Book{}, err
 		}
 	}
 
 	// Add book topics to book_topic table
+	stmt, err = tx.PrepareContext(ctx,
+		"INSERT IGNORE INTO book_topic (book_id , topic_id) VALUES (? , ?)",
+	)
+	if err != nil {
+		tx.Rollback()
+		return book.Book{}, err
+	}
+	defer stmt.Close()
+
 	for _, topic := range b.Topics {
-		if err = storage.AddBookTopic(ctx, uint(bookID), topic.ID); err != nil {
+		if _, err = stmt.ExecContext(ctx, uint(bookID), topic.ID); err != nil {
+			tx.Rollback()
 			return book.Book{}, err
 		}
 	}
 
-	return b, nil
-}
-
-func (storage Storage) AddBookAuthor(ctx context.Context, bookID, authorID uint) error {
-
-	stmt, err := storage.MySQL.PrepareContext(ctx,
-		"INSERT IGNORE INTO book_author (book_id , author_id) VALUES (? , ?)",
-	)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	if _, err = stmt.ExecContext(ctx,
-		bookID,
-		authorID,
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (storage Storage) AddBookTopic(ctx context.Context, bookID, topicID uint) error {
-
-	stmt, err := storage.MySQL.PrepareContext(ctx,
-		"INSERT IGNORE INTO book_topic (book_id , topic_id) VALUES (? , ?)",
-	)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	if _, err = stmt.ExecContext(ctx,
-		bookID,
-		topicID,
-	); err != nil {
-		return err
-	}
-
-	return nil
+	return b, tx.Commit()
 }
 
 func (storage Storage) SetBookDiscount(ctx context.Context, bookID, digital, physical uint) error {

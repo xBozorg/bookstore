@@ -7,9 +7,6 @@ import (
 )
 
 type (
-	ValidateCreateEmptyOrder func(ctx context.Context, req dto.CreateEmptyOrderRequest) error
-	ValidateCheckOpenOrder   func(ctx context.Context, req dto.CheckOpenOrderRequest) error
-
 	ValidateAddItem          func(ctx context.Context, req dto.AddItemRequest) error
 	ValidateIncreaseQuantity func(ctx context.Context, req dto.IncreaseQuantityRequest) error
 	ValidateDecreaseQuantity func(ctx context.Context, req dto.DecreaseQuantityRequest) error
