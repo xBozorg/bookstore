@@ -16,7 +16,7 @@ type Token struct {
 
 func (storage Storage) SaveRefreshToken(ctx context.Context, tk Token) error {
 
-	rtKey := fmt.Sprintf("%s:%s", tk.ID, tk.JTI) // userID:JTI
+	rtKey := fmt.Sprintf("%s:%s:rt:%s", tk.Role, tk.ID, tk.JTI) // {role}:{id}:rt:{jti}
 
 	err := storage.Redis.Set(ctx, rtKey, tk.RefreshToken, time.Since(tk.RefreshExp)).Err()
 	if err != nil {
@@ -28,7 +28,7 @@ func (storage Storage) SaveRefreshToken(ctx context.Context, tk Token) error {
 
 func (storage Storage) DoesRefreshTokenExist(ctx context.Context, tk Token) (bool, error) {
 
-	rtKey := fmt.Sprintf("%s:%s", tk.ID, tk.JTI) // userID:JTI
+	rtKey := fmt.Sprintf("%s:%s:rt:%s", tk.Role, tk.ID, tk.JTI) // {role}:{id}:rt:{jti}
 
 	cmd := storage.Redis.Get(ctx, rtKey)
 	if cmd.Err() != nil {
@@ -45,7 +45,7 @@ func (storage Storage) DoesRefreshTokenExist(ctx context.Context, tk Token) (boo
 
 func (storage Storage) DeleteRefreshToken(ctx context.Context, tk Token) error {
 
-	rtKey := fmt.Sprintf("%s:%s", tk.ID, tk.JTI) // userID:JTI
+	rtKey := fmt.Sprintf("%s:%s:rt:%s", tk.Role, tk.ID, tk.JTI) // {role}:{id}:rt:{jti}
 
 	err := storage.Redis.Del(ctx, rtKey).Err()
 	if err != nil {
@@ -55,9 +55,9 @@ func (storage Storage) DeleteRefreshToken(ctx context.Context, tk Token) error {
 	return nil
 }
 
-func (storage Storage) DeleteUserRefreshTokens(ctx context.Context, userID string) error {
+func (storage Storage) DeleteRefreshTokens(ctx context.Context, role, id string) error {
 
-	prefix := fmt.Sprintf("%s*", userID)
+	prefix := fmt.Sprintf("%s:%s*", role, id) // {role}:{id}
 
 	iter := storage.Redis.Scan(ctx, 0, prefix, 0).Iterator()
 
