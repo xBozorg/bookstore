@@ -22,8 +22,7 @@ type MySQLConfig struct {
 	Pass    string `mapstructure:"pass"`
 }
 type JwtConfig struct {
-	Secret        string `mapstructure:"secret"`
-	RefreshSecret string `mapstructure:"refresh_secret"`
+	Secret string `mapstructure:"secret"`
 }
 type EchoConfig struct {
 	Mode         string `mapstructure:"mode"`

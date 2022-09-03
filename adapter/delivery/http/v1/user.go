@@ -1,50 +1,17 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/XBozorg/bookstore/adapter/auth"
 	"github.com/XBozorg/bookstore/adapter/repository"
-	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/dto"
 	"github.com/XBozorg/bookstore/usecase/user"
 	"github.com/go-sql-driver/mysql"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
-
-func UserAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		accessTokenCookie, err := c.Cookie("access-token")
-		if err != nil {
-			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-		}
-
-		accessToken := accessTokenCookie.Value
-
-		claims := auth.Claims{}
-		token, err := jwt.ParseWithClaims(accessToken, &claims,
-			func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				return []byte(config.Conf.GetJWTConfig().Secret), nil
-			})
-
-		if err != nil {
-			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-		}
-
-		if _, ok := token.Claims.(*auth.Claims); !ok || !token.Valid || claims.Role != "user" {
-			return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-		}
-
-		return next(c)
-	}
-}
 
 func CreateUser(storage repository.Storage, validator user.ValidateCreateUser) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -507,7 +474,7 @@ func UserLogOutAllDevices(storage repository.Storage) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusUnauthorized)
 		}
 
-		err = storage.DeleteUserRefreshTokens(c.Request().Context(), id)
+		err = storage.DeleteRefreshTokens(c.Request().Context(), "user", id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}

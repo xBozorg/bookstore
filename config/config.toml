@@ -7,7 +7,6 @@ pass = 'userpass'
 
 [jwt]
 secret = 'HS256 Secret Key'
-refresh_secret =  'HS256 Secret Key'
 
 [echo]
 http_port = ':port'

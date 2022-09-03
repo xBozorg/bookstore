@@ -7,10 +7,8 @@ import (
 	"github.com/XBozorg/bookstore/adapter/payment"
 	"github.com/XBozorg/bookstore/adapter/repository"
 
-	"github.com/XBozorg/bookstore/config"
 	"github.com/XBozorg/bookstore/validator"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func Home() echo.HandlerFunc {
@@ -22,55 +20,30 @@ func Home() echo.HandlerFunc {
 func Routing(storage repository.Storage) *echo.Echo {
 	e := echo.New()
 
-	userGroup := e.Group("/v1/user")
-	adminGroup := e.Group("/v1/admin")
-
-	userGroup.Use(auth.UserTokenRefresher(storage))
-	adminGroup.Use(auth.AdminTokenRefresher(storage))
-
-	userGroup.Use(middleware.JWTWithConfig(
-		middleware.JWTConfig{
-			Claims:                  &auth.Claims{},
-			SigningKey:              []byte(config.Conf.GetJWTConfig().Secret),
-			TokenLookup:             "cookie:access-token,cookie:refresh-token",
-			ErrorHandlerWithContext: auth.UserJWTErrorChecker,
-			SigningMethod:           "HS256",
-		},
-	))
-	adminGroup.Use(middleware.JWTWithConfig(
-		middleware.JWTConfig{
-			Claims:                  &auth.Claims{},
-			SigningKey:              []byte(config.Conf.GetJWTConfig().Secret),
-			TokenLookup:             "cookie:access-token,cookie:refresh-token",
-			ErrorHandlerWithContext: auth.AdminJWTErrorChecker,
-			SigningMethod:           "HS256",
-		},
-	))
-
-	userGroup.Use(UserAuth)
-	adminGroup.Use(AdminAuth)
+	userGroup := e.Group("/v1/user", auth.UserTokenRefresher(storage))
+	adminGroup := e.Group("/v1/admin", auth.AdminTokenRefresher(storage))
 
 	e.GET("v1", Home())
 
-	e.POST("v1/user", CreateUser(storage, validator.ValidateCreateUser))                                              // <Create User>       .../v1/user
-	e.POST("v1/admin/login", LoginAdmin(storage, validator.ValidateLoginAdmin(storage)))                              // <LoginAdmin>        .../v1/admin/login
-	e.GET("v1/admin/login", AdminLoginForm())                                                                         // <AdminLoginForm>    .../v1/admin/login
-	e.POST("v1/user/login", LoginUser(storage, validator.ValidateLoginUser(storage)))                                 // <LoginUser>         .../v1/user/login
-	e.GET("v1/user/login", UserLoginForm())                                                                           // <UserLoginForm>     .../v1/user/login
-	e.GET("v1/author/:authorID", GetAuthor(storage, validator.ValidateGetAuthor(storage)))                            // <GetAuthor>         .../v1/author/:authorID
-	e.GET("v1/author", GetAuthors(storage))                                                                           // <GetAuthors>        .../v1/author
-	e.GET("v1/publisher/:publisherID", GetPublisher(storage, validator.ValidateGetPublisher(storage)))                // <GetPublisher>      .../v1/publisher/:publisherID
-	e.GET("v1/publisher", GetPublishers(storage))                                                                     // <GetPublishers>     .../v1/publisher
-	e.GET("v1/topic/:topicID", GetTopic(storage, validator.ValidateGetTopic(storage)))                                // <GetTopic>          .../v1/topic/:topicID
-	e.GET("v1/topic", GetTopics(storage))                                                                             // <GetTopics>         .../v1/topic
-	e.GET("v1/lang/:langID", GetLanguage(storage, validator.ValidateGetLanguage(storage)))                            // <GetLanguage>       .../v1/lang/:langID
-	e.GET("v1/lang", GetLanguages(storage))                                                                           // <GetLanguages>      .../v1/lang
-	e.GET("v1/book/:bookID", GetBook(storage, validator.ValidateGetBook(storage)))                                    // <GetBook>           .../v1/book/:bookID
-	e.GET("v1/book", GetAllBooks(storage))                                                                            // <GetAllBooks>       .../v1/book
-	e.GET("v1/book/author/:authorID", GetAuthorBooks(storage, validator.ValidateGetAuthorBooks(storage)))             // <GetAuthorBooks>    .../v1/book/author/:authorID
-	e.GET("v1/book/publisher/:publisherID", GetPublisherBooks(storage, validator.ValidateGetPublisherBooks(storage))) // <GetPublisherBooks> .../v1/book/publisher/:publisherID
-	e.GET("v1/book/topic/:topicID", GetTopicBooks(storage, validator.ValidateGetTopicBooks(storage)))                 // <GetTopicBooks>     .../v1/book/topic/:topicID
-	e.GET("v1/book/lang/:langID", GetLangBooks(storage, validator.ValidateGetLangBooks(storage)))                     // <GetLangBooks>      .../v1/book/lang/:langID
+	e.POST("v1/user", CreateUser(storage, validator.ValidateCreateUser))                                                    // <Create User>       .../v1/user
+	e.POST("v1/admin/login", LoginAdmin(storage, validator.ValidateLoginAdmin(storage)), auth.AdminTokenRefresher(storage)) // <LoginAdmin>        .../v1/admin/login
+	e.GET("v1/admin/login", AdminLoginForm())                                                                               // <AdminLoginForm>    .../v1/admin/login
+	e.POST("v1/user/login", LoginUser(storage, validator.ValidateLoginUser(storage)), auth.UserTokenRefresher(storage))     // <LoginUser>         .../v1/user/login
+	e.GET("v1/user/login", UserLoginForm())                                                                                 // <UserLoginForm>     .../v1/user/login
+	e.GET("v1/author/:authorID", GetAuthor(storage, validator.ValidateGetAuthor(storage)))                                  // <GetAuthor>         .../v1/author/:authorID
+	e.GET("v1/author", GetAuthors(storage))                                                                                 // <GetAuthors>        .../v1/author
+	e.GET("v1/publisher/:publisherID", GetPublisher(storage, validator.ValidateGetPublisher(storage)))                      // <GetPublisher>      .../v1/publisher/:publisherID
+	e.GET("v1/publisher", GetPublishers(storage))                                                                           // <GetPublishers>     .../v1/publisher
+	e.GET("v1/topic/:topicID", GetTopic(storage, validator.ValidateGetTopic(storage)))                                      // <GetTopic>          .../v1/topic/:topicID
+	e.GET("v1/topic", GetTopics(storage))                                                                                   // <GetTopics>         .../v1/topic
+	e.GET("v1/lang/:langID", GetLanguage(storage, validator.ValidateGetLanguage(storage)))                                  // <GetLanguage>       .../v1/lang/:langID
+	e.GET("v1/lang", GetLanguages(storage))                                                                                 // <GetLanguages>      .../v1/lang
+	e.GET("v1/book/:bookID", GetBook(storage, validator.ValidateGetBook(storage)))                                          // <GetBook>           .../v1/book/:bookID
+	e.GET("v1/book", GetAllBooks(storage))                                                                                  // <GetAllBooks>       .../v1/book
+	e.GET("v1/book/author/:authorID", GetAuthorBooks(storage, validator.ValidateGetAuthorBooks(storage)))                   // <GetAuthorBooks>    .../v1/book/author/:authorID
+	e.GET("v1/book/publisher/:publisherID", GetPublisherBooks(storage, validator.ValidateGetPublisherBooks(storage)))       // <GetPublisherBooks> .../v1/book/publisher/:publisherID
+	e.GET("v1/book/topic/:topicID", GetTopicBooks(storage, validator.ValidateGetTopicBooks(storage)))                       // <GetTopicBooks>     .../v1/book/topic/:topicID
+	e.GET("v1/book/lang/:langID", GetLangBooks(storage, validator.ValidateGetLangBooks(storage)))                           // <GetLangBooks>      .../v1/book/lang/:langID
 
 	userGroup.GET("", GetUser(storage, validator.ValidateGetUser(storage)))                                                     // <GetUser>               .../v1/user
 	userGroup.DELETE("", DeleteUser(storage, validator.ValidateDeleteUser(storage)))                                            // <DeleteUser>            .../v1/user

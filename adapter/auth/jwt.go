@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/XBozorg/bookstore/adapter/repository"
@@ -12,7 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Claims struct {
+type CustomClaims struct {
 	Role string `json:"role"`
 	jwt.RegisteredClaims
 }
@@ -44,7 +46,7 @@ func generateAccessToken(tk repository.Token) (string, time.Time, error) {
 
 	expirationTime := time.Now().Add(15 * time.Minute)
 
-	claims := &Claims{
+	claims := &CustomClaims{
 		Role: tk.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   tk.ID,
@@ -95,7 +97,7 @@ func GetSignOutInfo(c echo.Context) (repository.Token, error) {
 	token, err := jwt.Parse(
 		refreshCookie.Value,
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
+			return []byte(config.Conf.GetJWTConfig().Secret), nil
 		},
 	)
 	if err != nil {
@@ -137,7 +139,7 @@ func generateAndSaveRefreshToken(c echo.Context, storage repository.Storage, tk 
 
 	tk.JTI = uuid.NewV4().String()
 
-	claims := &Claims{
+	claims := &CustomClaims{
 		Role: tk.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   tk.ID,
@@ -148,7 +150,7 @@ func generateAndSaveRefreshToken(c echo.Context, storage repository.Storage, tk 
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString([]byte(config.Conf.GetJWTConfig().RefreshSecret))
+	tokenString, err := token.SignedString([]byte(config.Conf.GetJWTConfig().Secret))
 	if err != nil {
 		return "", time.Time{}, err
 	}
@@ -181,35 +183,62 @@ func AdminJWTErrorChecker(err error, c echo.Context) error {
 	return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 }
 
+func JWTCookieChecker(cookie *http.Cookie) (*CustomClaims, error) {
+
+	token, err := jwt.ParseWithClaims(
+		cookie.Value,
+		&CustomClaims{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(config.Conf.GetJWTConfig().Secret), nil
+		},
+	)
+	if err != nil {
+		return &CustomClaims{}, err
+	}
+
+	claim, ok := token.Claims.(*CustomClaims)
+	if !ok || !token.Valid {
+		return &CustomClaims{}, errors.New("jwt.Claims to CustomClaims error")
+	}
+
+	if !(time.Until(time.Unix(int64(claim.ExpiresAt.Unix()), 0)) > 0) || token == nil || !token.Valid {
+		return &CustomClaims{}, errors.New("invalid jwt cookie")
+	}
+
+	return claim, nil
+}
+
 func UserTokenRefresher(repo repository.Storage) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 
-			_, errAccess := c.Cookie("access-token")
+			accessCookie, errAccess := c.Cookie("access-token")
 			refreshCookie, errRefresh := c.Cookie("refresh-token")
 
-			if errAccess != nil && errRefresh == nil {
+			switch {
+			case errAccess != nil && errRefresh != nil && !strings.Contains(c.Request().URL.String(), "user/login"):
+				return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 
-				token, err := jwt.Parse(
-					refreshCookie.Value,
-					func(token *jwt.Token) (interface{}, error) {
-						return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
-					},
-				)
+			case errAccess == nil:
+				_, err := JWTCookieChecker(accessCookie)
+				if err != nil && !strings.Contains(c.Request().URL.String(), "user/login") {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
+				}
+				if strings.Contains(c.Request().URL.String(), "user/login") {
+					return c.Redirect(http.StatusMovedPermanently, "/v1")
+				}
+				return next(c)
+
+			case errAccess != nil && errRefresh == nil:
+				rtClaim, err := JWTCookieChecker(refreshCookie)
 				if err != nil {
 					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 				}
 
-				refreshClaims := token.Claims.(jwt.MapClaims)
-				jti := refreshClaims["jti"].(string)
-				role := refreshClaims["role"].(string)
-				id := refreshClaims["sub"].(string)
-				refreshExp := refreshClaims["exp"].(float64)
-
 				tk := repository.Token{
-					ID:           id,
-					Role:         role,
-					JTI:          jti,
+					ID:           rtClaim.Subject,
+					Role:         rtClaim.Role,
+					JTI:          rtClaim.RegisteredClaims.ID,
 					RefreshToken: refreshCookie.Value,
 				}
 
@@ -217,15 +246,16 @@ func UserTokenRefresher(repo repository.Storage) echo.MiddlewareFunc {
 					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
 				}
 
-				if (time.Until(time.Unix(int64(refreshExp), 0)) > 0) && token != nil && token.Valid {
+				if err := repo.DeleteRefreshToken(c.Request().Context(), tk); err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
+				}
 
-					if err := GenerateTokens(c, repo, tk); err != nil {
-						return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-					}
+				if err := GenerateTokens(c, repo, tk); err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
+				}
 
-					if err := repo.DeleteRefreshToken(c.Request().Context(), tk); err != nil {
-						return c.Redirect(http.StatusMovedPermanently, "/v1/user/login")
-					}
+				if strings.Contains(c.Request().URL.String(), "user/login") {
+					return c.Redirect(http.StatusMovedPermanently, "/v1")
 				}
 
 				return c.Redirect(http.StatusMovedPermanently, c.Request().URL.String())
@@ -240,31 +270,33 @@ func AdminTokenRefresher(repo repository.Storage) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 
-			_, errAccess := c.Cookie("access-token")
+			accessCookie, errAccess := c.Cookie("access-token")
 			refreshCookie, errRefresh := c.Cookie("refresh-token")
 
-			if errAccess != nil && errRefresh == nil {
+			switch {
+			case errAccess != nil && errRefresh != nil && !strings.Contains(c.Request().URL.String(), "admin/login"):
+				return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 
-				token, err := jwt.Parse(
-					refreshCookie.Value,
-					func(token *jwt.Token) (interface{}, error) {
-						return []byte(config.Conf.GetJWTConfig().RefreshSecret), nil
-					},
-				)
+			case errAccess == nil:
+				_, err := JWTCookieChecker(accessCookie)
+				if err != nil && !strings.Contains(c.Request().URL.String(), "adminlogin") {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+				}
+				if strings.Contains(c.Request().URL.String(), "admin/login") {
+					return c.Redirect(http.StatusMovedPermanently, "/v1")
+				}
+				return next(c)
+
+			case errAccess != nil && errRefresh == nil:
+				rtClaim, err := JWTCookieChecker(refreshCookie)
 				if err != nil {
 					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 				}
 
-				refreshClaims := token.Claims.(jwt.MapClaims)
-				jti := refreshClaims["jti"].(string)
-				role := refreshClaims["role"].(string)
-				id := refreshClaims["sub"].(string)
-				refreshExp := refreshClaims["exp"].(float64)
-
 				tk := repository.Token{
-					ID:           id,
-					Role:         role,
-					JTI:          jti,
+					ID:           rtClaim.Subject,
+					Role:         rtClaim.Role,
+					JTI:          rtClaim.RegisteredClaims.ID,
 					RefreshToken: refreshCookie.Value,
 				}
 
@@ -272,15 +304,16 @@ func AdminTokenRefresher(repo repository.Storage) echo.MiddlewareFunc {
 					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
 				}
 
-				if (time.Until(time.Unix(int64(refreshExp), 0)) > 0) && token != nil && token.Valid {
+				if err := repo.DeleteRefreshToken(c.Request().Context(), tk); err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+				}
 
-					if err := GenerateTokens(c, repo, tk); err != nil {
-						return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
-					}
+				if err := GenerateTokens(c, repo, tk); err != nil {
+					return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
+				}
 
-					if err := repo.DeleteRefreshToken(c.Request().Context(), tk); err != nil {
-						return c.Redirect(http.StatusMovedPermanently, "/v1/admin/login")
-					}
+				if strings.Contains(c.Request().URL.String(), "admin/login") {
+					return c.Redirect(http.StatusMovedPermanently, "/v1")
 				}
 
 				return c.Redirect(http.StatusMovedPermanently, c.Request().URL.String())
